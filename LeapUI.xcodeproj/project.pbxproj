@@ -1,0 +1,310 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1F62A5DF172DF75700154A2C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F62A5DE172DF75700154A2C /* Cocoa.framework */; };
+		1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5E7172DF75700154A2C /* InfoPlist.strings */; };
+		1F62A5EB172DF75700154A2C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A5EA172DF75700154A2C /* main.m */; };
+		1F62A5EF172DF75700154A2C /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5ED172DF75700154A2C /* Credits.rtf */; };
+		1F62A5F2172DF75700154A2C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A5F1172DF75700154A2C /* AppDelegate.m */; };
+		1F62A5F5172DF75700154A2C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5F3172DF75700154A2C /* MainMenu.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1F62A5DB172DF75700154A2C /* LeapUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeapUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1F62A5DE172DF75700154A2C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		1F62A5E1172DF75700154A2C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		1F62A5E2172DF75700154A2C /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		1F62A5E3172DF75700154A2C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		1F62A5E6172DF75700154A2C /* LeapUI-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "LeapUI-Info.plist"; sourceTree = "<group>"; };
+		1F62A5E8172DF75700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		1F62A5EA172DF75700154A2C /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		1F62A5EC172DF75700154A2C /* LeapUI-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LeapUI-Prefix.pch"; sourceTree = "<group>"; };
+		1F62A5EE172DF75700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		1F62A5F0172DF75700154A2C /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		1F62A5F1172DF75700154A2C /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		1F62A5F4172DF75700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1F62A5D8172DF75700154A2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F62A5DF172DF75700154A2C /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1F62A5D2172DF75700154A2C = {
+			isa = PBXGroup;
+			children = (
+				1F62A5E4172DF75700154A2C /* LeapUI */,
+				1F62A5DD172DF75700154A2C /* Frameworks */,
+				1F62A5DC172DF75700154A2C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1F62A5DC172DF75700154A2C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1F62A5DB172DF75700154A2C /* LeapUI.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1F62A5DD172DF75700154A2C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1F62A5DE172DF75700154A2C /* Cocoa.framework */,
+				1F62A5E0172DF75700154A2C /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1F62A5E0172DF75700154A2C /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				1F62A5E1172DF75700154A2C /* AppKit.framework */,
+				1F62A5E2172DF75700154A2C /* CoreData.framework */,
+				1F62A5E3172DF75700154A2C /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		1F62A5E4172DF75700154A2C /* LeapUI */ = {
+			isa = PBXGroup;
+			children = (
+				1F62A5F0172DF75700154A2C /* AppDelegate.h */,
+				1F62A5F1172DF75700154A2C /* AppDelegate.m */,
+				1F62A5F3172DF75700154A2C /* MainMenu.xib */,
+				1F62A5E5172DF75700154A2C /* Supporting Files */,
+			);
+			path = LeapUI;
+			sourceTree = "<group>";
+		};
+		1F62A5E5172DF75700154A2C /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				1F62A5E6172DF75700154A2C /* LeapUI-Info.plist */,
+				1F62A5E7172DF75700154A2C /* InfoPlist.strings */,
+				1F62A5EA172DF75700154A2C /* main.m */,
+				1F62A5EC172DF75700154A2C /* LeapUI-Prefix.pch */,
+				1F62A5ED172DF75700154A2C /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1F62A5DA172DF75700154A2C /* LeapUI */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F62A5F8172DF75700154A2C /* Build configuration list for PBXNativeTarget "LeapUI" */;
+			buildPhases = (
+				1F62A5D7172DF75700154A2C /* Sources */,
+				1F62A5D8172DF75700154A2C /* Frameworks */,
+				1F62A5D9172DF75700154A2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LeapUI;
+			productName = LeapUI;
+			productReference = 1F62A5DB172DF75700154A2C /* LeapUI.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1F62A5D3172DF75700154A2C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Siddarth Sampangi";
+			};
+			buildConfigurationList = 1F62A5D6172DF75700154A2C /* Build configuration list for PBXProject "LeapUI" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 1F62A5D2172DF75700154A2C;
+			productRefGroup = 1F62A5DC172DF75700154A2C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1F62A5DA172DF75700154A2C /* LeapUI */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1F62A5D9172DF75700154A2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */,
+				1F62A5EF172DF75700154A2C /* Credits.rtf in Resources */,
+				1F62A5F5172DF75700154A2C /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1F62A5D7172DF75700154A2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1F62A5EB172DF75700154A2C /* main.m in Sources */,
+				1F62A5F2172DF75700154A2C /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		1F62A5E7172DF75700154A2C /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1F62A5E8172DF75700154A2C /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		1F62A5ED172DF75700154A2C /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1F62A5EE172DF75700154A2C /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		1F62A5F3172DF75700154A2C /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1F62A5F4172DF75700154A2C /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1F62A5F6172DF75700154A2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		1F62A5F7172DF75700154A2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		1F62A5F9172DF75700154A2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LeapUI/LeapUI-Prefix.pch";
+				INFOPLIST_FILE = "LeapUI/LeapUI-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		1F62A5FA172DF75700154A2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "LeapUI/LeapUI-Prefix.pch";
+				INFOPLIST_FILE = "LeapUI/LeapUI-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1F62A5D6172DF75700154A2C /* Build configuration list for PBXProject "LeapUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F62A5F6172DF75700154A2C /* Debug */,
+				1F62A5F7172DF75700154A2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1F62A5F8172DF75700154A2C /* Build configuration list for PBXNativeTarget "LeapUI" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1F62A5F9172DF75700154A2C /* Debug */,
+				1F62A5FA172DF75700154A2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1F62A5D3172DF75700154A2C /* Project object */;
+}
