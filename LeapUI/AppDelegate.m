@@ -8,11 +8,15 @@
 
 #import "AppDelegate.h"
 
+
 @implementation AppDelegate
+@synthesize listener;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
+    listener = [[LUIListener alloc]init];
+    [listener run];
 }
 
 @end
