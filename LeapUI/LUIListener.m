@@ -14,6 +14,7 @@
 - (void) run {
     LeapController *controller = [[LeapController alloc] init];
     [controller addListener:self];
+    [controller setPolicyFlags:LEAP_POLICY_BACKGROUND_FRAMES];
     NSLog(@"Listener added");
 }
 
@@ -44,7 +45,21 @@
 
 - (void)onFrame:(NSNotification *)notification;
 {
-    NSLog(@"Got a frame!");
+    LeapController *aController = (LeapController *)[notification object];
+    
+    // Get the most recent frame and report some basic information
+    LeapFrame *frame = [aController frame:0];
+    
+    //if the finger is more than 5 centimeters away from the front of the Leap, then ignore it
+    NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
+    for(int i = 0; i < [fingers count]; i++) {
+        if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z > 50){
+            NSLog(@"Removing finger with distance: %f", [(LeapFinger*)[fingers objectAtIndex:i] tipPosition].z);
+            [fingers removeObjectAtIndex:i];
+            i--;
+        }
+    }
+
 }
 
 @end

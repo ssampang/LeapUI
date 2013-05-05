@@ -12,11 +12,11 @@
 		1F62A5EB172DF75700154A2C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A5EA172DF75700154A2C /* main.m */; };
 		1F62A5EF172DF75700154A2C /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5ED172DF75700154A2C /* Credits.rtf */; };
 		1F62A5F2172DF75700154A2C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A5F1172DF75700154A2C /* AppDelegate.m */; };
-		1F62A5F5172DF75700154A2C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5F3172DF75700154A2C /* MainMenu.xib */; };
 		1F62A5FC172E399400154A2C /* libLeap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F62A5FB172E399400154A2C /* libLeap.dylib */; };
 		1F62A606172E49F800154A2C /* LeapObjectiveC.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A604172E49F800154A2C /* LeapObjectiveC.mm */; };
 		1F62A60C172E511D00154A2C /* LUIListener.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F62A60B172E511D00154A2C /* LUIListener.m */; };
 		1F62A610172E693A00154A2C /* libLeap.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1F62A5FB172E399400154A2C /* libLeap.dylib */; };
+		1F62A6191734939700154A2C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A6171734939700154A2C /* MainMenu.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -45,7 +45,6 @@
 		1F62A5EE172DF75700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
 		1F62A5F0172DF75700154A2C /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		1F62A5F1172DF75700154A2C /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		1F62A5F4172DF75700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		1F62A5FB172E399400154A2C /* libLeap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libLeap.dylib; sourceTree = "<group>"; };
 		1F62A600172E49F800154A2C /* Leap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Leap.h; sourceTree = "<group>"; };
 		1F62A602172E49F800154A2C /* LeapMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LeapMath.h; sourceTree = "<group>"; };
@@ -53,6 +52,7 @@
 		1F62A604172E49F800154A2C /* LeapObjectiveC.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LeapObjectiveC.mm; sourceTree = "<group>"; };
 		1F62A60A172E511D00154A2C /* LUIListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LUIListener.h; sourceTree = "<group>"; };
 		1F62A60B172E511D00154A2C /* LUIListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LUIListener.m; sourceTree = "<group>"; };
+		1F62A6181734939700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,10 +110,10 @@
 			children = (
 				1F62A5FF172E49F800154A2C /* include */,
 				1F62A5F0172DF75700154A2C /* AppDelegate.h */,
+				1F62A6171734939700154A2C /* MainMenu.xib */,
 				1F62A5F1172DF75700154A2C /* AppDelegate.m */,
 				1F62A60A172E511D00154A2C /* LUIListener.h */,
 				1F62A60B172E511D00154A2C /* LUIListener.m */,
-				1F62A5F3172DF75700154A2C /* MainMenu.xib */,
 				1F62A5E5172DF75700154A2C /* Supporting Files */,
 			);
 			path = LeapUI;
@@ -196,7 +196,7 @@
 			files = (
 				1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */,
 				1F62A5EF172DF75700154A2C /* Credits.rtf in Resources */,
-				1F62A5F5172DF75700154A2C /* MainMenu.xib in Resources */,
+				1F62A6191734939700154A2C /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,10 +233,10 @@
 			name = Credits.rtf;
 			sourceTree = "<group>";
 		};
-		1F62A5F3172DF75700154A2C /* MainMenu.xib */ = {
+		1F62A6171734939700154A2C /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
-				1F62A5F4172DF75700154A2C /* en */,
+				1F62A6181734939700154A2C /* en */,
 			);
 			name = MainMenu.xib;
 			sourceTree = "<group>";
