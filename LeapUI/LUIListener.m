@@ -54,7 +54,7 @@
     NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
     for(int i = 0; i < [fingers count]; i++) {
         if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z > 50){
-            NSLog(@"Removing finger with distance: %f", [(LeapFinger*)[fingers objectAtIndex:i] tipPosition].z);
+            //NSLog(@"Removing finger with distance: %f", [(LeapFinger*)[fingers objectAtIndex:i] tipPosition].z);
             [fingers removeObjectAtIndex:i];
             i--;
         }
