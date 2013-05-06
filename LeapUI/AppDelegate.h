@@ -16,9 +16,9 @@
 
 @property (assign) IBOutlet NSMenu *statusMenu;
 
-@property (assign) IBOutlet NSWindow *window;
+@property (nonatomic, strong, readonly) IBOutlet NSWindow *window;
 @property LUIListener *listener;
--(void) pressKey:(int)key down:(BOOL)pressDown;
+//-(void) pressKey:(int)key down:(BOOL)pressDown;
 //-(void) scrollX:(NSInteger)x scrollY:(NSInteger)y;
 //- (IBAction)onQuitClick:(id)sender;
 //- (IBAction)onAboutClick:(id)sender;

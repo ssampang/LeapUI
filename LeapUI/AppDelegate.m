@@ -10,6 +10,9 @@
 
 
 @implementation AppDelegate
+
+
+@synthesize window = _window;
 @synthesize listener;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification

@@ -358,6 +358,7 @@
 				1F62A5FA172DF75700154A2C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
