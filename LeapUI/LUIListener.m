@@ -123,7 +123,6 @@ static float prevTipPosition = 0;
     if(![prevFinger isValid]) return;
     
     CGFloat velocity = powf((powf(finger.tipVelocity.x,2) + powf(finger.tipVelocity.y,2)),0.5);
-    NSLog(@"VELOCITY: %f", velocity);
 
     CGFloat scale = velocity/100 * fieldOfViewScale * fabsf(finger.tipPosition.z) * MAX_ZSCALE_ZOOM/MIN_VIEW_THRESHOLD;
     
@@ -154,11 +153,12 @@ static float prevTipPosition = 0;
                                                kCGMouseButtonLeft // ignored
                                                );
     
-    if(DEBUG) {NSLog(@"\nLeapFinger location:\t%f , %f\n\t\t\tMouseXY:\t%f , %f\n\tFinal Position: \t%f, %f\n\t\t\tDeltaXY:\t%f, %f\n\n",
+    if(DEBUG) {NSLog(@"\nLeapFinger location:\t%f , %f\n\t\t\tMouseXY:\t%f , %f\n\tFinal Position: \t%f, %f\n\t\t\tDeltaXY:\t%f, %f\n\t\t\tVelocity:\t%f\n\n",
                      finger.tipPosition.x, finger.tipPosition.y,
                      mouseLoc.x, mouseLoc.y,
                      fingerTip.x, fingerTip.y,
-                     deltaX, deltaY);
+                     deltaX, deltaY,
+                     velocity);
     }
     CGEventSetType(move, kCGEventMouseMoved);
     CGEventPost(kCGHIDEventTap, move);
@@ -216,14 +216,21 @@ static float prevTipPosition = 0;
     }
     
     //Point and Click will be 1 finger; Pinch to zoom and Two finger scroll will be 2 fingers;
-    switch ( [fingers count] ){
+    
+    /*NOTE: for some reason the switch statement didn't work. When I added "case 5", it would always default
+            to that even when I was only showing 1 finger. I replaced it with an if-statement and it worked
+            so I just left that there. I will remove the switch statement entirely in a few days if you guys
+            can't figure out a solution either.*/
+    
+    /*NSLog(@"FINGERS: %ld", (unsigned long)fingers.count);
+    switch ( (unsigned long)[fingers count] ){
         case 1: {
             [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
         }
         case 2: {
             [self scrollWithFingers:fingers];
         }
-        /*case 5: {
+        case 5: {
          //Sid: This can be changed later 
             CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
                                                       CGPointMake(mainScreenWidth/2, mainScreenHeight/2),
@@ -232,10 +239,31 @@ static float prevTipPosition = 0;
             CGEventSetType(move, kCGEventMouseMoved);
             CGEventPost(kCGHIDEventTap, move);
             CFRelease(move);
-        }*/
+        }
         default:{
             //NSLog(@"Nothing significant is happening");
         }
+    }*/
+    
+    NSUInteger fingerCount = [fingers count];
+    if(fingerCount == 1) {
+        [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
+    }
+    else if(fingerCount == 2) {
+        [self scrollWithFingers:fingers];
+    }
+    else if(fingerCount == 5) {
+        //Sid: This can be changed later
+        CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
+                                                  CGPointMake(mainScreenWidth/2, mainScreenHeight/2),
+                                                  kCGMouseButtonLeft // ignored
+                                                  );
+        CGEventSetType(move, kCGEventMouseMoved);
+        CGEventPost(kCGHIDEventTap, move);
+        CFRelease(move);
+    }
+    else {
+        //NSLog(@"Nothing significant is happening");
     }
 
 }
