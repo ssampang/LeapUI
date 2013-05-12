@@ -10,15 +10,25 @@
 #import "LeapObjectiveC.h"
 
 #define DEBUG 1
-#define THRESHOLD1 100
-#define THRESHOLD2 20
-#define THRESHOLD3 0
+
+/* Cursor movement values */
+#define MIN_VIEW_THRESHOLD 100
+#define MIN_FREEZE_THRESHOLD 20
+#define MIN_CLICK_THRESHOLD 0
+#define ZOOMSCALE 2.5
+
+/* These are values that we are simply comfortable with using.
+   They do not represent the Leap's full field of view. */
+#define LEAP_FIELD_OF_VIEW_WIDTH 600
+#define LEAP_FIELD_OF_VIEW_HEIGHT 400
 
 @implementation LUIListener
 
 /* NAVIGATION VARS */
 bool moving = YES;
 static LeapFrame *prevFrame;
+static CGFloat fieldOfViewScale;
+static CGFloat mainScreenWidth;
 
 /* SCROLLING VARS */
 static float prevTipPosition = 0;
@@ -43,6 +53,11 @@ static float prevTipPosition = 0;
     //    [aController enableGesture:LEAP_GESTURE_TYPE_KEY_TAP enable:YES];
     //    [aController enableGesture:LEAP_GESTURE_TYPE_SCREEN_TAP enable:YES];
     [aController enableGesture:LEAP_GESTURE_TYPE_SWIPE enable:YES];
+    
+    NSRect mainScreenFrame = [[NSScreen mainScreen] frame];
+    mainScreenWidth = mainScreenFrame.size.width;
+    
+    fieldOfViewScale = mainScreenWidth/LEAP_FIELD_OF_VIEW_WIDTH;
 }
 
 - (void)onDisconnect:(NSNotification *)notification
@@ -63,16 +78,12 @@ static float prevTipPosition = 0;
     else previousFrame = prevFrame;
     
     LeapFinger *prevFinger = [previousFrame finger:[finger id]];
-    //NSLog(@"FUCK X %f Y %f\n", prevFinger.tipPosition.x, prevFinger.tipPosition.y);
     if(![prevFinger isValid]) return;
+
+    CGFloat scale = finger.tipPosition.z * ZOOMSCALE/MIN_VIEW_THRESHOLD;
     
-    //NSRect mainScreenFrame = [[NSScreen mainScreen] visibleFrame];
-    
-    //CGFloat scaleX = mainScreenFrame.size.width/600;
-    //CGFloat scaleY = 2;
-    
-    CGFloat deltaX = (float) lroundf( 3.2 * (finger.tipPosition.x - prevFinger.tipPosition.x));
-    CGFloat deltaY = (float) lroundf(3.2 * (finger.tipPosition.y - prevFinger.tipPosition.y));
+    CGFloat deltaX = (float) lroundf( fieldOfViewScale * (finger.tipPosition.x - prevFinger.tipPosition.x) * scale);
+    CGFloat deltaY = (float) lroundf( fieldOfViewScale * (finger.tipPosition.y - prevFinger.tipPosition.y) * scale);
     
     if(deltaX == 0 && deltaY == 0) {
         prevFrame = previousFrame;
@@ -81,15 +92,10 @@ static float prevTipPosition = 0;
     }
     else moving = YES;
 
-
-    CGFloat ypos = 1200 - mouseLoc.y;
-    NSLog(@"YPOS: %f ", ypos);
-    
+    CGFloat ypos = mainScreenWidth - mouseLoc.y;
     CGPoint fingerTip = CGPointMake(mouseLoc.x + deltaX, ypos - deltaY);
-    //CGPoint mouseTip = CGPointMake(mouseLoc.x, ypos);
     
-    CGEventRef move = CGEventCreateMouseEvent(
-                                               NULL, kCGEventMouseMoved,
+    CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
                                                fingerTip,
                                                kCGMouseButtonLeft // ignored
                                                );
@@ -148,7 +154,7 @@ static float prevTipPosition = 0;
     //if the finger is more than 5 centimeters away from the front of the Leap, then ignore it
     NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
     for(int i = 0; i < [fingers count]; i++) {
-        if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z > 50){
+        if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z > MIN_VIEW_THRESHOLD){
             //NSLog(@"Removing finger with distance: %f", [(LeapFinger*)[fingers objectAtIndex:i] tipPosition].z);
             [fingers removeObjectAtIndex:i];
             i--;
