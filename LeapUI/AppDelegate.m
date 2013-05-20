@@ -8,18 +8,21 @@
 
 #import "AppDelegate.h"
 
+#ifndef APP_DELEGATE
 
 @implementation AppDelegate
-
-
-@synthesize window = _window;
 @synthesize listener;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     // Insert code here to initialize your application
+    
+    
+    
     listener = [[LUIListener alloc]init];
     [listener run];
 }
 
 @end
+
+#endif //APP_DELEGATE

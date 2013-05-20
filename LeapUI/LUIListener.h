@@ -9,7 +9,14 @@
 #import <Foundation/Foundation.h>
 #import "LeapObjectiveC.h"
 
-@interface LUIListener : NSObject <LeapListener>
+@interface LUIListener : NSObject <LeapListener> {
+    NSWindow *window;
+    NSStatusItem *statusItem;
+}
+
+@property (assign) IBOutlet NSMenu *statusMenu;
+
+@property (nonatomic, strong, readonly) IBOutlet NSWindow *window;
 
 - (void) run;
 

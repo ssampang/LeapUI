@@ -9,18 +9,8 @@
 #import <Cocoa/Cocoa.h>
 #import "LUIListener.h"
 
-@interface AppDelegate : NSObject <NSApplicationDelegate> {
-    NSWindow *window;
-    NSStatusItem *statusItem;
-}
+@interface AppDelegate : NSObject <NSApplicationDelegate> 
 
-@property (assign) IBOutlet NSMenu *statusMenu;
-
-@property (nonatomic, strong, readonly) IBOutlet NSWindow *window;
 @property LUIListener *listener;
-//-(void) pressKey:(int)key down:(BOOL)pressDown;
-//-(void) scrollX:(NSInteger)x scrollY:(NSInteger)y;
-//- (IBAction)onQuitClick:(id)sender;
-//- (IBAction)onAboutClick:(id)sender;
 
 @end

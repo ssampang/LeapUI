@@ -6,16 +6,18 @@
 //  Copyright (c) 2013 Siddarth Sampangi. All rights reserved.
 //
 
+#ifndef LUILISTENER
+
 #import "LUIListener.h"
 #import "LeapObjectiveC.h"
 #import <Carbon/Carbon.h>
+#import <Foundation/Foundation.h>
 
 #define DEBUG 0
 
-
 /* Cursor movement values */
-#define MIN_VIEW_THRESHOLD 100
-#define MIN_FREEZE_THRESHOLD 20
+#define MIN_VIEW_THRESHOLD 50
+#define MIN_FREEZE_THRESHOLD 10
 #define MIN_CLICK_THRESHOLD 0
 #define MAX_ZSCALE_ZOOM 2.5
 
@@ -25,6 +27,7 @@
 #define LEAP_FIELD_OF_VIEW_HEIGHT 400
 
 @implementation LUIListener
+@synthesize window = _window;
 
 /* NAVIGATION VARS */
 bool moving = YES;
@@ -33,6 +36,11 @@ static CGFloat fieldOfViewScale;
 static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
 static bool leftClickDown = NO;
+static NSDate *leftClickDownTime;
+
+static NSImage *red;
+static NSImage *green;
+static NSImage *blue;
 
 /* SCROLLING VARS */
 static float prevTipPosition = 0;
@@ -40,11 +48,34 @@ static float prevTipPosition = 0;
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
 
-- (void) run {
+- (void) run{
     LeapController *controller = [[LeapController alloc] init];
     [controller addListener:self];
     [controller setPolicyFlags:LEAP_POLICY_BACKGROUND_FRAMES];
     NSLog(@"Listener added");
+    
+    statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
+    [statusItem setMenu:[self statusMenu]];
+    //[statusItem setTitle:@"Test"];
+    NSBundle *bundle = [NSBundle mainBundle];
+    
+    red = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red" ofType:@"jpg"] ];
+    [red setSize:NSMakeSize(20, 20)];
+    
+    blue = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"blue" ofType:@"jpg"] ];
+    [blue setSize:NSMakeSize(20, 20)];
+    
+    green = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green" ofType:@"jpg"] ];
+    [green setSize:NSMakeSize(20, 20)];
+    
+    [red setSize:NSMakeSize(20, 20)];
+    [statusItem setImage:red];
+    [statusItem setHighlightMode:YES];
+}
+
+- (void) setStatusBarImage: (NSImage *) img {
+    [statusItem setImage:img];
+    [statusItem setHighlightMode:YES];
 }
 
 - (void)onInit:(NSNotification *)notification
@@ -79,7 +110,7 @@ static float prevTipdistance = 0;
     NSLog(@"Exited");
 }
 
-- (void) click{
+- (void) click {
     
     NSPoint mouseLoc = [NSEvent mouseLocation];
     CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
@@ -94,6 +125,7 @@ static float prevTipdistance = 0;
         CGEventPost(kCGHIDEventTap, clickLeftDown);
         CFRelease(clickLeftDown);
         leftClickDown = YES;
+        leftClickDownTime = [NSDate date];
     }
     else {
         CGEventRef clickLeftUp = CGEventCreateMouseEvent(
@@ -111,13 +143,20 @@ static float prevTipdistance = 0;
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
     
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
-        if(!leftClickDown)[self click];
-        return;
+        if(!leftClickDown){
+            [self setStatusBarImage: blue];
+            [self click];
+            return;
+        }
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
+        [self setStatusBarImage:green];
         if(leftClickDown) [self click];
         return;
     }
+    //else [self setStatusBarImage:red];
+    
+
     
     NSPoint mouseLoc = [NSEvent mouseLocation];
     LeapFrame *previousFrame;
@@ -153,7 +192,16 @@ static float prevTipdistance = 0;
     
     CGPoint fingerTip = CGPointMake(xpos,ypos);
     
-    CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
+    CGEventType e;
+    
+    if(leftClickDown ) {
+        NSTimeInterval t = [[NSDate date] timeIntervalSinceDate:leftClickDownTime];
+       if((int)t > 1) e = kCGEventLeftMouseDragged;
+       else return;
+    }
+    else e = kCGEventMouseMoved;
+    
+    CGEventRef move = CGEventCreateMouseEvent( NULL, e,
                                                fingerTip,
                                                kCGMouseButtonLeft // ignored
                                                );
@@ -165,7 +213,7 @@ static float prevTipdistance = 0;
                      deltaX, deltaY,
                      velocity);
     }
-    CGEventSetType(move, kCGEventMouseMoved);
+    CGEventSetType(move, e);
     CGEventPost(kCGHIDEventTap, move);
     CFRelease(move);
 }
@@ -265,41 +313,13 @@ static float prevTipdistance = 0;
     
     //Point and Click will be 1 finger; Pinch to zoom and Two finger scroll will be 2 fingers;
     
-    /*NOTE: for some reason the switch statement didn't work. When I added "case 5", it would always default
-            to that even when I was only showing 1 finger. I replaced it with an if-statement and it worked
-            so I just left that there. I will remove the switch statement entirely in a few days if you guys
-            can't figure out a solution either.*/
-    
-    /*NSLog(@"FINGERS: %ld", (unsigned long)fingers.count);
-    switch ( (unsigned long)[fingers count] ){
-        case 1: {
-            [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
-        }
-        case 2: {
-            [self scrollWithFingers:fingers];
-        }
-        case 5: {
-         //Sid: This can be changed later 
-            CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
-                                                      CGPointMake(mainScreenWidth/2, mainScreenHeight/2),
-                                                      kCGMouseButtonLeft // ignored
-                                                      );
-            CGEventSetType(move, kCGEventMouseMoved);
-            CGEventPost(kCGHIDEventTap, move);
-            CFRelease(move);
-        }
-        default:{
-            //NSLog(@"Nothing significant is happening");
-        }
-    }*/
-    
     NSUInteger fingerCount = [fingers count];
     if(fingerCount == 1) {
         [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
         [self scrollWithFingers:fingers];
-         [self pinchAndZoom:fingers];
+        [self pinchAndZoom:fingers];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
@@ -324,3 +344,5 @@ static float prevTipdistance = 0;
     CFRelease(downEvent);
 }
 @end
+
+#endif //LUILISTENER
