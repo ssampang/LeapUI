@@ -8,6 +8,7 @@
 
 #import "LUIListener.h"
 #import "LeapObjectiveC.h"
+#import <Carbon/Carbon.h>
 
 #define DEBUG 0
 
@@ -22,8 +23,7 @@
    They do not represent the Leap's full field of view. */
 #define LEAP_FIELD_OF_VIEW_WIDTH 600
 #define LEAP_FIELD_OF_VIEW_HEIGHT 400
-static float prevTipPosition = 0;
-static float prevTipdistance = 0;
+
 @implementation LUIListener
 
 /* NAVIGATION VARS */
@@ -36,6 +36,9 @@ static bool leftClickDown = NO;
 
 /* SCROLLING VARS */
 static float prevTipPosition = 0;
+
+/* PINCH AND ZOOM VARS */
+static float prevTipdistance = 0;
 
 - (void) run {
     LeapController *controller = [[LeapController alloc] init];
