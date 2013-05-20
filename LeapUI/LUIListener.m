@@ -11,6 +11,7 @@
 
 #define DEBUG 0
 
+
 /* Cursor movement values */
 #define MIN_VIEW_THRESHOLD 100
 #define MIN_FREEZE_THRESHOLD 20
@@ -21,7 +22,8 @@
    They do not represent the Leap's full field of view. */
 #define LEAP_FIELD_OF_VIEW_WIDTH 600
 #define LEAP_FIELD_OF_VIEW_HEIGHT 400
-
+static float prevTipPosition = 0;
+static float prevTipdistance = 0;
 @implementation LUIListener
 
 /* NAVIGATION VARS */
@@ -311,5 +313,11 @@ static float prevTipPosition = 0;
     }
 
 }
-
+-(void) pressKey:(int)key down:(BOOL)pressDown{
+    CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
+    
+    CGEventPost(kCGHIDEventTap, downEvent);
+    
+    CFRelease(downEvent);
+}
 @end
