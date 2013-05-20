@@ -202,7 +202,7 @@ static float prevTipdistance = 0;
     }
     /***** End Two Finger Scrolling *****/
 }
-- (void) PinchandZoom :(NSMutableArray *)fingers;
+- (void) pinchAndZoom :(NSMutableArray *)fingers;
 {
     if ( [fingers count] == 2 ){
         
@@ -299,7 +299,7 @@ static float prevTipdistance = 0;
     }
     else if(fingerCount == 2) {
         [self scrollWithFingers:fingers];
-         [self PinchandZoom:fingers];
+         [self pinchAndZoom:fingers];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
