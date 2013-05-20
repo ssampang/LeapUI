@@ -220,7 +220,7 @@ static float prevTipdistance = 0;
     CFRelease(move);
 }
 
-- (void) scrollWithFingers: (NSMutableArray *) fingers  :(LeapFrame * ) frame
+- (void) scrollWithFingers: (NSMutableArray *) fingers  andFrame:(LeapFrame * ) frame
 {
     /**** Two Finger Scrolling ****/
     /* Still have to:
@@ -314,7 +314,7 @@ static float prevTipdistance = 0;
         [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
-        [self scrollWithFingers:fingers];
+        [self scrollWithFingers:fingers andFrame:frame];
         [self pinchAndZoom:fingers];
     }
     else if(fingerCount == 5) {
