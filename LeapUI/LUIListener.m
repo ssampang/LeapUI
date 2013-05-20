@@ -197,7 +197,50 @@ static float prevTipPosition = 0;
     }
     /***** End Two Finger Scrolling *****/
 }
-
+- (void) PinchandZoom :(NSMutableArray *)fingers;
+{
+    if ( [fingers count] == 2 ){
+        
+        // BEGIN Two Finger Pinch&Zoom
+        const float disThreshold = 1.24;
+        float tip1Positionx = [ fingers[0] tipPosition ].x;
+        float tip2Positionx = [ fingers[1] tipPosition ].x;
+        float tip1Positiony = [ fingers[0] tipPosition ].y;
+        float tip2Positiony = [ fingers[1] tipPosition ].y;
+        float tip1Positionz = [ fingers[0] tipPosition ].z;
+        float tip2Positionz = [ fingers[1] tipPosition ].z;
+        float distance = sqrtf(powf((tip1Positionx-tip2Positionx), 2)+powf((tip1Positiony-tip2Positiony), 2)+powf((tip1Positionz-tip2Positionz), 2));
+        //NSLog(@"distance = %f",distance);
+        // NSLog(@"predistance = %f",prevTipdistance);
+        if( distance - prevTipdistance > disThreshold)
+        {
+            NSLog(@"Zoom Gesture dectected");
+            [self pressKey:kVK_Command down:true];
+            [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+            [self pressKey:kVK_ANSI_Equal down:true];
+            
+            [NSThread sleepForTimeInterval: 0.1];
+            
+            [self pressKey:kVK_Command down:true];
+            [NSThread sleepForTimeInterval: 0.1];
+            [self pressKey:kVK_ANSI_Equal down:true];
+            
+        }
+        else if ( prevTipdistance - distance > disThreshold){
+            NSLog(@"Pinch Gesture dectected");
+            [self pressKey:kVK_Command down:true];
+            [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+            [self pressKey:kVK_ANSI_Minus down:true];
+            
+            [NSThread sleepForTimeInterval: 0.1];
+            
+            [self pressKey:kVK_Command down:true];
+            [NSThread sleepForTimeInterval: 0.1];
+            [self pressKey:kVK_ANSI_Minus down:true];
+        }
+        prevTipdistance = distance;
+    }
+}
 - (void)onFrame:(NSNotification *)notification;
 {
     LeapController *aController = (LeapController *)[notification object];
@@ -251,6 +294,7 @@ static float prevTipPosition = 0;
     }
     else if(fingerCount == 2) {
         [self scrollWithFingers:fingers];
+         [self PinchandZoom:fingers];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
