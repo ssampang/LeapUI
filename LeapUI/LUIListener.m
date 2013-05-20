@@ -32,6 +32,8 @@
 /* NAVIGATION VARS */
 bool moving = YES;
 static LeapFrame *prevFrame;
+static LeapFrame *comparisonFrame;
+static float compFrameTranslation;
 static CGFloat fieldOfViewScale;
 static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
@@ -218,35 +220,29 @@ static float prevTipdistance = 0;
     CFRelease(move);
 }
 
-- (void) scrollWithFingers: (NSMutableArray *) fingers
+- (void) scrollWithFingers: (NSMutableArray *) fingers  :(LeapFrame * ) frame
 {
     /**** Two Finger Scrolling ****/
     /* Still have to:
      1. put in checks to differentiate pinch to zoom as two finger scrolling when tipPosition < POSITION_DIFF_THRESHOLD (check x posiitons)
      2. recognize when user is not scrolling anymore (probably through some predictions like velocity * fps
-     3. Map Scrolling to Trackpad Event
      */
     
     if ( [fingers count] == 2 ){
-        /*NSLog(@"Y position of Finger 1: %f", [ fingers[0] tipPosition ].y );
-         NSLog(@"Y position of Finger 2: %f", [ fingers[1] tipPosition ].y );
-         NSLog(@"Velocity of Finger 1: %f", [ fingers[0] tipVelocity ].magnitude );
-         NSLog(@"Previous Tip Position: %f", prevTipPosition );*/
-        
-        const int POSITION_DIFF_THRESHOLD = 8; //difference between fingers positions to recognize scroll
-        const int MOVING_VELOCITY_THRESHOLD = 10;
         float tip1Position = [ fingers[0] tipPosition ].y;
-        float tip2Position = [ fingers[1] tipPosition ].y;
-        float tip1Velocity = [ fingers[0] tipVelocity ].magnitude;
-        if ( tip1Velocity > MOVING_VELOCITY_THRESHOLD && abs(tip1Position - tip2Position) < POSITION_DIFF_THRESHOLD){
-            if ( tip1Position < prevTipPosition ){
-                NSLog(@"Scrolling Down");
+        if ( comparisonFrame != NULL){
+            //NSLog(@"Translation Probability: %f", [frame translationProbability:comparisonFrame]);
+            //NSLog(@"Distance scrolled: %f: ", [frame translation:comparisonFrame].magnitude);
+            
+            if ( [frame translationProbability:comparisonFrame] > 0.4 ){
+                CGEventRef scrolling = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1, tip1Position - prevTipPosition);
+                CGEventSetType(scrolling, kCGEventScrollWheel);
+                CGEventPost(kCGHIDEventTap, scrolling);
             }
-            else if ( tip1Position > prevTipPosition ){
-                NSLog(@"Scrolling Up");
-            }
-            prevTipPosition = tip1Position;
+            
         }
+        prevTipPosition = tip1Position;
+        comparisonFrame = frame;
     }
     /***** End Two Finger Scrolling *****/
 }
