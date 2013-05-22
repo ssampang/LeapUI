@@ -16,8 +16,8 @@
 #define DEBUG 0
 
 /* Cursor movement values */
-#define MIN_VIEW_THRESHOLD 50
-#define MIN_FREEZE_THRESHOLD 10
+#define MIN_VIEW_THRESHOLD 70
+#define MIN_FREEZE_THRESHOLD 15
 #define MIN_CLICK_THRESHOLD 0
 #define MAX_ZSCALE_ZOOM 2.5
 
@@ -32,13 +32,12 @@
 /* NAVIGATION VARS */
 bool moving = YES;
 static LeapFrame *prevFrame;
-static LeapFrame *comparisonFrame;
-static float compFrameTranslation;
 static CGFloat fieldOfViewScale;
 static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
 static bool leftClickDown = NO;
 static NSDate *leftClickDownTime;
+static int statusItemColor = 0; /* 1 = blue; 2 = green; 3 = red;*/
 
 static NSImage *red;
 static NSImage *green;
@@ -46,6 +45,8 @@ static NSImage *blue;
 
 /* SCROLLING VARS */
 static float prevTipPosition = 0;
+static LeapFrame *comparisonFrame;
+static float compFrameTranslation;
 
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
@@ -139,22 +140,36 @@ static float prevTipdistance = 0;
         CGEventPost(kCGHIDEventTap, clickLeftUp);
         CFRelease(clickLeftUp);
         leftClickDown = NO;
+        leftClickDownTime = [NSDate date];
     }
 }
 
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
     
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
-        if(!leftClickDown){
+        if(statusItemColor != 1) {
             [self setStatusBarImage: blue];
+            statusItemColor = 1;
+        }
+        if(!leftClickDown){
             [self click];
             return;
         }
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
+        if(statusItemColor != 2) {
+            [self setStatusBarImage: green];
+            statusItemColor = 2;
+        }
         [self setStatusBarImage:green];
         if(leftClickDown) [self click];
         return;
+    }
+    else {
+        if(statusItemColor != 3) {
+            [self setStatusBarImage: red];
+            statusItemColor = 3;
+        }
     }
     //else [self setStatusBarImage:red];
     
@@ -196,7 +211,7 @@ static float prevTipdistance = 0;
     
     CGEventType e;
     
-    if(leftClickDown ) {
+    if(leftClickDown) {
         NSTimeInterval t = [[NSDate date] timeIntervalSinceDate:leftClickDownTime];
        if((int)t > 1) e = kCGEventLeftMouseDragged;
        else return;
@@ -314,8 +329,8 @@ static float prevTipdistance = 0;
         [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
-        [self scrollWithFingers:fingers andFrame:frame];
-        [self pinchAndZoom:fingers];
+        //[self scrollWithFingers:fingers andFrame:frame];
+        //[self pinchAndZoom:fingers];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
