@@ -300,7 +300,7 @@ static float prevRadius=0;
         prevTipdistance = distance;
     }
 }
--(void)VolumeControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
+-(void)volumeControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
 {
     if([fingers count]==5){
     float radius= [hands sphereRadius];
@@ -355,7 +355,7 @@ static float prevRadius=0;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
-        [self VolumeControl:hand andFinger:fingers];
+        [self volumeControl:hand andFinger:fingers];
     }
     else {
         //NSLog(@"Nothing significant is happening");
