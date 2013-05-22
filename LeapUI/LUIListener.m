@@ -310,7 +310,13 @@ static float prevRadius=0;
     
     // Get the most recent frame and report some basic information
     LeapFrame *frame = [aController frame:0];
-    
+     LeapHand *hand;
+    if([[frame hands]count]!=0)
+    {
+        hand=[[frame hands] objectAtIndex:0];
+            
+    }
+
     //if the finger is more than MIN_VIEW_THRESHOLD millimeters away from the front of the Leap, then ignore it
     NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
     for(int i = 0; i < [fingers count]; i++) {
