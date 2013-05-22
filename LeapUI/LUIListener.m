@@ -50,6 +50,9 @@ static float prevTipPosition = 0;
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
 
+/* Volume control vars*/
+static float prevRadius=0;
+
 - (void) run{
     LeapController *controller = [[LeapController alloc] init];
     [controller addListener:self];
@@ -251,7 +254,7 @@ static float prevTipdistance = 0;
     if ( [fingers count] == 2 ){
         
         // BEGIN Two Finger Pinch&Zoom
-        const float disThreshold = 1.24;
+        const float disThreshold = 2.5;
         float tip1Positionx = [ fingers[0] tipPosition ].x;
         float tip2Positionx = [ fingers[1] tipPosition ].x;
         float tip1Positiony = [ fingers[0] tipPosition ].y;
@@ -268,11 +271,7 @@ static float prevTipdistance = 0;
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Equal down:true];
             
-            [NSThread sleepForTimeInterval: 0.1];
-            
-            [self pressKey:kVK_Command down:true];
-            [NSThread sleepForTimeInterval: 0.1];
-            [self pressKey:kVK_ANSI_Equal down:true];
+          
             
         }
         else if ( prevTipdistance - distance > disThreshold){
@@ -281,15 +280,30 @@ static float prevTipdistance = 0;
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Minus down:true];
             
-            [NSThread sleepForTimeInterval: 0.1];
-            
-            [self pressKey:kVK_Command down:true];
-            [NSThread sleepForTimeInterval: 0.1];
-            [self pressKey:kVK_ANSI_Minus down:true];
+           
         }
         prevTipdistance = distance;
     }
 }
+-(void)VolumeControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
+{
+    if([fingers count]==5){
+    float radius= [hands sphereRadius];
+    const float radiusthreshold=1.5;
+    if(radius - prevRadius>=radiusthreshold)
+    {
+        NSLog(@"Increase the Volume");
+        [self pressKey:kVK_F12 down:true];
+            }
+    else if(prevRadius - radius>=radiusthreshold)
+    {
+        NSLog(@"Decrease the Volume");
+        [self pressKey:kVK_F11 down:true];
+    }
+    prevRadius=radius;
+    }
+}
+
 - (void)onFrame:(NSNotification *)notification;
 {
     LeapController *aController = (LeapController *)[notification object];
@@ -319,13 +333,14 @@ static float prevTipdistance = 0;
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
-        CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
+       /* CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
                                                   CGPointMake(mainScreenWidth/2, mainScreenHeight/2),
                                                   kCGMouseButtonLeft // ignored
                                                   );
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
-        CFRelease(move);
+        CFRelease(move);*/
+        [self VolumeControl:hand andFinger:fingers];
     }
     else {
         //NSLog(@"Nothing significant is happening");
