@@ -22,6 +22,7 @@
 		1FD6AB26174A38C5000075BC /* blue.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB23174A38C5000075BC /* blue.jpg */; };
 		1FD6AB27174A38C5000075BC /* green.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB24174A38C5000075BC /* green.jpg */; };
 		1FD6AB28174A38C5000075BC /* red.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB25174A38C5000075BC /* red.jpg */; };
+		1FD6AB2A174D5459000075BC /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FD6AB29174D5459000075BC /* CoreAudio.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -62,6 +63,7 @@
 		1FD6AB23174A38C5000075BC /* blue.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = blue.jpg; sourceTree = "<group>"; };
 		1FD6AB24174A38C5000075BC /* green.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = green.jpg; sourceTree = "<group>"; };
 		1FD6AB25174A38C5000075BC /* red.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = red.jpg; sourceTree = "<group>"; };
+		1FD6AB29174D5459000075BC /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1FD6AB2A174D5459000075BC /* CoreAudio.framework in Frameworks */,
 				1FD6AB22174A2A80000075BC /* Foundation.framework in Frameworks */,
 				1F5FF8F61749EA4700F942F9 /* Carbon.framework in Frameworks */,
 				1F62A5DF172DF75700154A2C /* Cocoa.framework in Frameworks */,
@@ -82,6 +85,7 @@
 		1F62A5D2172DF75700154A2C = {
 			isa = PBXGroup;
 			children = (
+				1FD6AB29174D5459000075BC /* CoreAudio.framework */,
 				1F62A5E4172DF75700154A2C /* LeapUI */,
 				1F62A5DD172DF75700154A2C /* Frameworks */,
 				1F62A5DC172DF75700154A2C /* Products */,
