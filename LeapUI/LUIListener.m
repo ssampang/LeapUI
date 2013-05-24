@@ -51,9 +51,17 @@ static float compFrameTranslation;
 
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
+static float startSymbol=1;
 
-/* Volume control vars*/
+
+/* BRIGHTNESS CONTROL VARS*/
 static float prevRadius=0;
+static float startSymbolR=1;
+
+/* VOLUME CONTROL VARS */
+static LeapFrame *prevFrame;
+static float prevRotationAngle=0;
+static float startSymbolV=1;
 
 - (void) run{
     LeapController *controller = [[LeapController alloc] init];
@@ -267,6 +275,7 @@ static float prevRadius=0;
 }
 - (void) pinchAndZoom :(NSMutableArray *)fingers;
 {
+    Boolean symbol=false;
     if ( [fingers count] == 2 ){
         
         // BEGIN Two Finger Pinch&Zoom
@@ -280,8 +289,9 @@ static float prevRadius=0;
         float distance = sqrtf(powf((tip1Positionx-tip2Positionx), 2)+powf((tip1Positiony-tip2Positiony), 2)+powf((tip1Positionz-tip2Positionz), 2));
         //NSLog(@"distance = %f",distance);
         // NSLog(@"predistance = %f",prevTipdistance);
-        if( distance - prevTipdistance > disThreshold)
+        if( distance - prevTipdistance > disThreshold&&startSymbol!=1)
         {
+        
             NSLog(@"Zoom Gesture dectected");
             [self pressKey:kVK_Command down:true];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
@@ -290,7 +300,8 @@ static float prevRadius=0;
           
             
         }
-        else if ( prevTipdistance - distance > disThreshold){
+        else if ( prevTipdistance - distance > disThreshold&&startSymbol!=1){
+      
             NSLog(@"Pinch Gesture dectected");
             [self pressKey:kVK_Command down:true];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
@@ -298,6 +309,15 @@ static float prevRadius=0;
             
            
         }
+        else if(startSymbol!=1)
+        {
+            symbol=true;
+            
+        }
+        if(startSymbol==1)
+            startSymbol--;
+        if(symbol==true) // when you put 2 fingers in the field but do not recognize as zoom or pinch
+            startSymbol=1;
         prevTipdistance = distance;
     }
 }
@@ -386,23 +406,58 @@ static float prevRadius=0;
 	
 }
 
--(void)volumeControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
+-(void)brightnessControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
 {
     if([fingers count]==5){
+      
     float radius= [hands sphereRadius];
-    const float radiusthreshold=1.5;
+         // NSLog(@"current radius= %f",radius);
+       // NSLog(@"prevradius = %f",prevRadius);
+    const float radiusthreshold=2.2;
     if(radius - prevRadius>=radiusthreshold)
     {
-        NSLog(@"Increase the Volume");
-        [self setVolume: [self getVolume] *1.1];
+        //NSLog(@"Increase the Brightness");
+        //[self setVolume: [self getVolume] +0.05];
             }
     else if(prevRadius - radius>=radiusthreshold)
     {
-        NSLog(@"Decrease the Volume");
-        [self setVolume: [self getVolume] *0.9];
+       // NSLog(@"Decrease the Brightness");
+       // [self setVolume: [self getVolume] -0.05];
     }
     prevRadius=radius;
     }
+}
+-(void)volumeControl:(LeapHand *)hands andFrame:(LeapFrame *) frame
+{
+    Boolean symbol=false;
+    float rotationAngle=0;
+    const float rotationThreshold=0.05;
+    if(startSymbolV!=1){
+    LeapVector *axis=[[LeapVector alloc]init];
+    axis=[hands rotationAxis:prevFrame];
+     rotationAngle=[hands rotationAngle:prevFrame];
+        if(rotationAngle-prevRotationAngle>=rotationThreshold)
+        {
+            NSLog(@"Increase the Volume");
+            
+        }
+       else if(prevRotationAngle-rotationAngle>=rotationThreshold)
+       {
+           NSLog(@"Decrease the Volume");
+       }
+        else{
+    symbol=true;
+        }
+
+        }
+    if(startSymbolV==1)
+        startSymbolV--;
+    if(symbol==true)
+        startSymbolV=1;
+    prevFrame=frame;
+    prevRotationAngle=rotationAngle;
+    NSLog(@"rotationAngle= %f",rotationAngle);
+
 }
 
 - (void)onFrame:(NSNotification *)notification;
@@ -432,11 +487,12 @@ static float prevRadius=0;
     
     NSUInteger fingerCount = [fingers count];
     if(fingerCount == 1) {
-        [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
+       // [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
         //[self scrollWithFingers:fingers andFrame:frame];
-        //[self pinchAndZoom:fingers];
+       [self pinchAndZoom:fingers];
+      
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
@@ -447,7 +503,18 @@ static float prevRadius=0;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
-        [self volumeControl:hand andFinger:fingers];
+        [self brightnessControl:hand andFinger:fingers];
+        
+    }
+    else if(fingerCount==0)
+    {
+        startSymbol=1;
+        startSymbolV=1;
+        startSymbolR=1;
+    }
+    else if (fingerCount>=3)
+    {
+        [self volumeControl:hand andFrame:frame];
     }
     else {
         //NSLog(@"Nothing significant is happening");
