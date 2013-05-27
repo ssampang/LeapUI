@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1F0C289A1751DA4300EB5853 /* yellow.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1F0C28991751DA4300EB5853 /* yellow.jpg */; };
 		1F5FF8F61749EA4700F942F9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F5FF8F51749EA4700F942F9 /* Carbon.framework */; };
 		1F62A5DF172DF75700154A2C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F62A5DE172DF75700154A2C /* Cocoa.framework */; };
 		1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5E7172DF75700154A2C /* InfoPlist.strings */; };
@@ -19,7 +20,6 @@
 		1F62A610172E693A00154A2C /* libLeap.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 1F62A5FB172E399400154A2C /* libLeap.dylib */; };
 		1F62A6191734939700154A2C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A6171734939700154A2C /* MainMenu.xib */; };
 		1FD6AB22174A2A80000075BC /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F62A5E3172DF75700154A2C /* Foundation.framework */; };
-		1FD6AB26174A38C5000075BC /* blue.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB23174A38C5000075BC /* blue.jpg */; };
 		1FD6AB27174A38C5000075BC /* green.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB24174A38C5000075BC /* green.jpg */; };
 		1FD6AB28174A38C5000075BC /* red.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1FD6AB25174A38C5000075BC /* red.jpg */; };
 		1FD6AB2A174D5459000075BC /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1FD6AB29174D5459000075BC /* CoreAudio.framework */; };
@@ -39,6 +39,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1F0C28991751DA4300EB5853 /* yellow.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = yellow.jpg; sourceTree = "<group>"; };
 		1F5FF8F51749EA4700F942F9 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		1F62A5DB172DF75700154A2C /* LeapUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeapUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F62A5DE172DF75700154A2C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -60,7 +61,6 @@
 		1F62A60A172E511D00154A2C /* LUIListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LUIListener.h; sourceTree = "<group>"; };
 		1F62A60B172E511D00154A2C /* LUIListener.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LUIListener.m; sourceTree = "<group>"; };
 		1F62A6181734939700154A2C /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		1FD6AB23174A38C5000075BC /* blue.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = blue.jpg; sourceTree = "<group>"; };
 		1FD6AB24174A38C5000075BC /* green.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = green.jpg; sourceTree = "<group>"; };
 		1FD6AB25174A38C5000075BC /* red.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = red.jpg; sourceTree = "<group>"; };
 		1FD6AB29174D5459000075BC /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -138,9 +138,9 @@
 		1F62A5E5172DF75700154A2C /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				1FD6AB23174A38C5000075BC /* blue.jpg */,
-				1FD6AB24174A38C5000075BC /* green.jpg */,
 				1FD6AB25174A38C5000075BC /* red.jpg */,
+				1F0C28991751DA4300EB5853 /* yellow.jpg */,
+				1FD6AB24174A38C5000075BC /* green.jpg */,
 				1F62A5E6172DF75700154A2C /* LeapUI-Info.plist */,
 				1F62A5E7172DF75700154A2C /* InfoPlist.strings */,
 				1F62A5EA172DF75700154A2C /* main.m */,
@@ -216,9 +216,9 @@
 				1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */,
 				1F62A5EF172DF75700154A2C /* Credits.rtf in Resources */,
 				1F62A6191734939700154A2C /* MainMenu.xib in Resources */,
-				1FD6AB26174A38C5000075BC /* blue.jpg in Resources */,
 				1FD6AB27174A38C5000075BC /* green.jpg in Resources */,
 				1FD6AB28174A38C5000075BC /* red.jpg in Resources */,
+				1F0C289A1751DA4300EB5853 /* yellow.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

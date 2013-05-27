@@ -30,6 +30,9 @@
 @implementation LUIListener
 @synthesize window = _window;
 
+/* GENERAL VARS */
+static bool clickingFinger;
+
 /* NAVIGATION VARS */
 bool moving = YES;
 static LeapFrame *prevFrame;
@@ -38,28 +41,24 @@ static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
 static bool leftClickDown = NO;
 static NSDate *leftClickDownTime;
-static int statusItemColor = 0; /* 1 = blue; 2 = green; 3 = red;*/
+static int statusItemColor = 0; /* 1 = red; 2 = yellow; 3 = green;*/
 
 static NSImage *red;
+static NSImage *yellow;
 static NSImage *green;
-static NSImage *blue;
 
 /* SCROLLING VARS */
-static float prevTipPosition = 0;
-static LeapFrame *comparisonFrame;
-static float compFrameTranslation;
+static LeapVector *scrollingVelocity;
 
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
 static float startSymbol=1;
 
-
-/* BRIGHTNESS CONTROL VARS*/
+/* BRIGHTNESS CONTROL VARS */
 static float prevRadius=0;
 static float startSymbolR=1;
 
 /* VOLUME CONTROL VARS */
-static LeapFrame *prevFrame;
 static float prevRotationAngle=0;
 static float startSymbolV=1;
 
@@ -77,8 +76,8 @@ static float startSymbolV=1;
     red = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red" ofType:@"jpg"] ];
     [red setSize:NSMakeSize(20, 20)];
     
-    blue = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"blue" ofType:@"jpg"] ];
-    [blue setSize:NSMakeSize(20, 20)];
+    yellow = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow" ofType:@"jpg"] ];
+    [yellow setSize:NSMakeSize(20, 20)];
     
     green = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green" ofType:@"jpg"] ];
     [green setSize:NSMakeSize(20, 20)];
@@ -158,9 +157,10 @@ static float startSymbolV=1;
 
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
     
+    /* STATUS BAR ITEM COLOR AND CLICKING */
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
         if(statusItemColor != 1) {
-            [self setStatusBarImage: blue];
+            [self setStatusBarImage: green];
             statusItemColor = 1;
         }
         if(!leftClickDown){
@@ -170,7 +170,7 @@ static float startSymbolV=1;
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
         if(statusItemColor != 2) {
-            [self setStatusBarImage: green];
+            [self setStatusBarImage: yellow];
             statusItemColor = 2;
         }
         [self setStatusBarImage:green];
@@ -183,10 +183,8 @@ static float startSymbolV=1;
             statusItemColor = 3;
         }
     }
-    //else [self setStatusBarImage:red];
     
-
-    
+    /* MOVEMENT */
     NSPoint mouseLoc = [NSEvent mouseLocation];
     LeapFrame *previousFrame;
     if(moving) previousFrame = [aController frame:1];
@@ -247,7 +245,7 @@ static float startSymbolV=1;
     CFRelease(move);
 }
 
-- (void) scrollWithFingers: (NSMutableArray *) fingers  andFrame:(LeapFrame * ) frame
+- (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController
 {
     /**** Two Finger Scrolling ****/
     /* Still have to:
@@ -255,25 +253,63 @@ static float startSymbolV=1;
      2. recognize when user is not scrolling anymore (probably through some predictions like velocity * fps
      */
     
-    if ( [fingers count] == 2 ){
-        float tip1Position = [ fingers[0] tipPosition ].y;
-        if ( comparisonFrame != NULL){
-            //NSLog(@"Translation Probability: %f", [frame translationProbability:comparisonFrame]);
-            //NSLog(@"Distance scrolled: %f: ", [frame translation:comparisonFrame].magnitude);
-            
-            if ( [frame translationProbability:comparisonFrame] > 0.4 ){
-                CGEventRef scrolling = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1, tip1Position - prevTipPosition);
-                CGEventSetType(scrolling, kCGEventScrollWheel);
-                CGEventPost(kCGHIDEventTap, scrolling);
+    LeapFrame *currentFrame = [aController frame:0];
+    LeapFrame *previousFrame = [aController frame:1];
+    
+    LeapVector *currentTipPosition = [fingers[0] tipPosition];
+    LeapVector *previousTipPosition = [previousFrame finger: [ (LeapFinger *)fingers[0] id]].tipPosition;
+        
+    if ( previousFrame != NULL){
+        //NSLog(@"Translation Probability: %f", [frame translationProbability:comparisonFrame]);
+        //NSLog(@"Distance scrolled: %f: ", [frame translation:comparisonFrame].magnitude);
+       
+        if([currentFrame translationProbability: previousFrame] > 0.4) {
+            if (currentTipPosition.z < MIN_CLICK_THRESHOLD  ){
+                CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
+                                                                      previousTipPosition.y - currentTipPosition.y);
+                CGEventRef scrollingX = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 2,
+                                                                      previousTipPosition.x - currentTipPosition.x);
+                CGEventSetType(scrollingY, kCGEventScrollWheel);
+                CGEventPost(kCGHIDEventTap, scrollingY);
+                CFRelease(scrollingY);
+                
+                CGEventSetType(scrollingX, kCGEventScrollWheel);
+                CGEventPost(kCGHIDEventTap, scrollingX);
+                CFRelease(scrollingX);
+                
+                scrollingVelocity = [fingers[0] tipVelocity];
             }
-            
+            else {
+                
+                //[self inertialScrollWithVelocity: scrollingVelocity];
+            }
         }
-        prevTipPosition = tip1Position;
-        comparisonFrame = frame;
     }
     /***** End Two Finger Scrolling *****/
 }
-- (void) pinchAndZoom :(NSMutableArray *)fingers;
+
+//THIS DOESNT WORK YET AT ALL. WORK IN PROGRESS
+- (void) inertialScrollWithVelocity: (LeapVector *) scrollingVelocity {
+    if(scrollingVelocity.x <= 0.01 && scrollingVelocity.y <= 0.01) return;
+    CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
+                                                          -1*scrollingVelocity.y);
+    CGEventRef scrollingX = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 2,
+                                                          -1*scrollingVelocity.x);
+    CGEventSetType(scrollingY, kCGEventScrollWheel);
+    CGEventPost(kCGHIDEventTap, scrollingY);
+    CFRelease(scrollingY);
+    
+    CGEventSetType(scrollingX, kCGEventScrollWheel);
+    CGEventPost(kCGHIDEventTap, scrollingX);
+    CFRelease(scrollingX);
+    
+    
+    scrollingVelocity = [[LeapVector alloc] initWithX: scrollingVelocity.x * 0.9
+                                                    y: scrollingVelocity.y * 0.9
+                                                    z: scrollingVelocity.z];
+}
+
+- (void) pinchAndZoom :(NSMutableArray *)fingers
 {
     Boolean symbol=false;
     if ( [fingers count] == 2 ){
@@ -427,8 +463,10 @@ static float startSymbolV=1;
     prevRadius=radius;
     }
 }
--(void)volumeControl:(LeapHand *)hands andFrame:(LeapFrame *) frame
+-(void)volumeControl:(LeapHand *)hands andController:(LeapController *) aController
 {
+    LeapFrame *prevFrame = [aController frame: 1];
+    
     Boolean symbol=false;
     float rotationAngle=0;
     const float rotationThreshold=0.05;
@@ -454,7 +492,6 @@ static float startSymbolV=1;
         startSymbolV--;
     if(symbol==true)
         startSymbolV=1;
-    prevFrame=frame;
     prevRotationAngle=rotationAngle;
     NSLog(@"rotationAngle= %f",rotationAngle);
 
@@ -481,18 +518,36 @@ static float startSymbolV=1;
             [fingers removeObjectAtIndex:i];
             i--;
         }
+        else if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z < MIN_CLICK_THRESHOLD){
+            clickingFinger = true;
+        }
     }
     
     //Point and Click will be 1 finger; Pinch to zoom and Two finger scroll will be 2 fingers;
     
     NSUInteger fingerCount = [fingers count];
-    if(fingerCount == 1) {
-       // [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
+    
+    if(fingerCount==0)
+    {
+        startSymbol=1;
+        startSymbolV=1;
+        startSymbolR=1;
+    }
+    
+    else if(fingerCount == 1) {
+        [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
-        //[self scrollWithFingers:fingers andFrame:frame];
-       [self pinchAndZoom:fingers];
-      
+        if([frame scaleProbability:[aController frame:1] ] > [frame translationProbability:[aController frame:1]]) {
+            [self pinchAndZoom:fingers];
+        }
+        else {
+            [self scrollWithFingers: fingers andController: aController];
+        }
+    }
+    else if (fingerCount>=3)
+    {
+        [self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
@@ -505,16 +560,6 @@ static float startSymbolV=1;
         CFRelease(move);*/
         [self brightnessControl:hand andFinger:fingers];
         
-    }
-    else if(fingerCount==0)
-    {
-        startSymbol=1;
-        startSymbolV=1;
-        startSymbolR=1;
-    }
-    else if (fingerCount>=3)
-    {
-        [self volumeControl:hand andFrame:frame];
     }
     else {
         //NSLog(@"Nothing significant is happening");
