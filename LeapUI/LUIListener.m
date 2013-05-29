@@ -62,6 +62,10 @@ static float startSymbolR=1;
 static float prevRotationAngle=0;
 static float startSymbolV=1;
 
+/* COMMAND+TAB VARS */
+static bool cmndTabMenuIsVisible = false;
+static bool userIsCmndTabbing = false;
+
 - (void) run{
     LeapController *controller = [[LeapController alloc] init];
     [controller addListener:self];
@@ -165,8 +169,9 @@ static float startSymbolV=1;
         }
         if(!leftClickDown){
             [self click];
-            return;
+            if(userIsCmndTabbing == true) userIsCmndTabbing = false;
         }
+        return;
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
         if(statusItemColor != 2) {
@@ -221,12 +226,12 @@ static float startSymbolV=1;
     
     CGEventType e;
     
-    if(leftClickDown) {
+    /*if(leftClickDown) {
         NSTimeInterval t = [[NSDate date] timeIntervalSinceDate:leftClickDownTime];
        if((int)t > 1) e = kCGEventLeftMouseDragged;
        else return;
     }
-    else e = kCGEventMouseMoved;
+    else*/ e = kCGEventMouseMoved;
     
     CGEventRef move = CGEventCreateMouseEvent( NULL, e,
                                                fingerTip,
@@ -241,6 +246,73 @@ static float startSymbolV=1;
                      velocity);
     }
     CGEventSetType(move, e);
+    CGEventPost(kCGHIDEventTap, move);
+    CFRelease(move);
+}
+
+- (void) cmndTabWithFinger: (LeapFinger *) finger controller: (LeapController *) aController {
+    if(!cmndTabMenuIsVisible) {
+        [self pressKey:kVK_Command down:true];
+        [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+        [self pressKey:kVK_Tab down:true];
+        
+        //[self pressKey:kVK_Command down:false];
+        //[self pressKey:kVK_Tab down:false];
+        
+        cmndTabMenuIsVisible = true;
+    }
+    else [self moveCursorWithFinger:finger controller:aController];
+}
+
+- (void) dragCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
+    if(finger.tipPosition.z > MIN_CLICK_THRESHOLD) return;
+    
+    NSPoint mouseLoc = [NSEvent mouseLocation];
+    LeapFrame *previousFrame;
+    if(moving) previousFrame = [aController frame:1];
+    else previousFrame = prevFrame;
+    
+    LeapFinger *prevFinger = [previousFrame finger:[finger id]];
+    if(![prevFinger isValid]) return;
+    
+    CGFloat velocity = powf((powf(finger.tipVelocity.x,2) + powf(finger.tipVelocity.y,2)),0.5);
+    
+    CGFloat scale = velocity/100 * fieldOfViewScale * fabsf(finger.tipPosition.z) * MAX_ZSCALE_ZOOM/MIN_VIEW_THRESHOLD;
+    
+    CGFloat deltaX = (float) lroundf((finger.tipPosition.x - prevFinger.tipPosition.x) * scale);
+    CGFloat deltaY = (float) lroundf((finger.tipPosition.y - prevFinger.tipPosition.y) * scale);
+    
+    if(deltaX == 0 && deltaY == 0) {
+        prevFrame = previousFrame;
+        moving = NO;
+        return;
+    }
+    else moving = YES;
+    
+    CGFloat xpos = mouseLoc.x + deltaX;
+    
+    if(xpos < 0) xpos = 0;
+    else if(xpos > mainScreenWidth) xpos = mainScreenWidth;
+    
+    CGFloat ypos = mainScreenHeight - (mouseLoc.y + deltaY);
+    
+    if(ypos < 0) ypos = 0;
+    else if(ypos > mainScreenHeight) ypos = mainScreenHeight;
+    
+    CGPoint fingerTip = CGPointMake(xpos,ypos);
+    CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventLeftMouseDragged,
+                                              fingerTip,
+                                              kCGMouseButtonLeft // ignored
+                                              );
+    
+    if(DEBUG) {NSLog(@"\nLeapFinger location:\t%f , %f\n\t\t\tMouseXY:\t%f , %f\n\tFinal Position: \t%f, %f\n\t\t\tDeltaXY:\t%f, %f\n\t\t\tVelocity:\t%f\n\n",
+                     finger.tipPosition.x, finger.tipPosition.y,
+                     mouseLoc.x, mouseLoc.y,
+                     fingerTip.x, fingerTip.y,
+                     deltaX, deltaY,
+                     velocity);
+    }
+    CGEventSetType(move, kCGEventLeftMouseDragged);
     CGEventPost(kCGHIDEventTap, move);
     CFRelease(move);
 }
@@ -277,7 +349,7 @@ static float startSymbolV=1;
                 CGEventPost(kCGHIDEventTap, scrollingX);
                 CFRelease(scrollingX);
                 
-                scrollingVelocity = [fingers[0] tipVelocity];
+                //scrollingVelocity = [fingers[0] tipVelocity];
             }
             else {
                 
@@ -309,9 +381,11 @@ static float startSymbolV=1;
                                                     z: scrollingVelocity.z];
 }
 
-- (void) pinchAndZoom :(NSMutableArray *)fingers
+- (void) pinchAndZoom :(NSMutableArray *)fingers withController: (LeapController *) aController
 {
     Boolean symbol=false;
+    
+    if( [[aController frame:0] scaleProbability: [aController frame:1]] < 0.4) return;
     if ( [fingers count] == 2 ){
         
         // BEGIN Two Finger Pinch&Zoom
@@ -442,7 +516,7 @@ static float startSymbolV=1;
 	
 }
 
--(void)brightnessControl:(LeapHand *)hands andFinger:(NSMutableArray *) fingers;
+-(void)brightnessControl:(LeapHand *)hands andFingers:(NSMutableArray *) fingers;
 {
     if([fingers count]==5){
       
@@ -507,7 +581,6 @@ static float startSymbolV=1;
     if([[frame hands]count]!=0)
     {
         hand=[[frame hands] objectAtIndex:0];
-            
     }
 
     //if the finger is more than MIN_VIEW_THRESHOLD millimeters away from the front of the Leap, then ignore it
@@ -539,13 +612,14 @@ static float startSymbolV=1;
     }
     else if(fingerCount == 2) {
         if([frame scaleProbability:[aController frame:1] ] > [frame translationProbability:[aController frame:1]]) {
-            [self pinchAndZoom:fingers];
+            [self pinchAndZoom:fingers withController: aController];
         }
         else {
             [self scrollWithFingers: fingers andController: aController];
         }
     }
-    else if (fingerCount>=3)
+    //ALERT: Why was this if( fingerCount >= 3) ??
+    else if (fingerCount==3)
     {
         [self volumeControl:hand andController:aController];
     }
@@ -558,8 +632,32 @@ static float startSymbolV=1;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
-        [self brightnessControl:hand andFinger:fingers];
-        
+        if(userIsCmndTabbing) {
+            [self cmndTabWithFinger:[fingers objectAtIndex:0] controller:aController];
+        }
+        else {
+            if([frame scaleProbability:[aController frame:1] ] > [frame translationProbability:[aController frame:1]]) {
+                [self brightnessControl:hand andFingers:fingers];
+            }
+            else {
+                NSArray *gestures = [frame gestures:nil];
+                LeapSwipeGesture *swipeGesture = nil;
+                for (int i = 0; i < [gestures count]; i++) {                
+                    if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
+                        swipeGesture = [gestures objectAtIndex:i];
+                        break;
+                    }
+                }
+            
+                if(swipeGesture == nil) return;
+                
+                LeapVector *swipeDirection = swipeGesture.direction;
+                if(swipeDirection.x > swipeDirection.y) return;
+                userIsCmndTabbing = true;
+                [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
+                return;
+            }
+        }
     }
     else {
         //NSLog(@"Nothing significant is happening");
