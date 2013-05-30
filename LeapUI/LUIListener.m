@@ -178,7 +178,6 @@ static bool userIsCmndTabbing = false;
             [self setStatusBarImage: yellow];
             statusItemColor = 2;
         }
-        [self setStatusBarImage:green];
         if(leftClickDown) [self click];
         return;
     }
@@ -401,28 +400,20 @@ static bool userIsCmndTabbing = false;
         // NSLog(@"predistance = %f",prevTipdistance);
         if( distance - prevTipdistance > disThreshold&&startSymbol!=1)
         {
-        
             NSLog(@"Zoom Gesture dectected");
             [self pressKey:kVK_Command down:true];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Equal down:true];
-            
-          
-            
         }
         else if ( prevTipdistance - distance > disThreshold&&startSymbol!=1){
-      
             NSLog(@"Pinch Gesture dectected");
             [self pressKey:kVK_Command down:true];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Minus down:true];
-            
-           
         }
         else if(startSymbol!=1)
         {
             symbol=true;
-            
         }
         if(startSymbol==1)
             startSymbol--;
@@ -488,7 +479,6 @@ static bool userIsCmndTabbing = false;
 		return;
 	}
 	
-	
 	// try set master-channel (0) volume
 	size = sizeof canset;
 	err = AudioDeviceGetPropertyInfo(device, 0, false, kAudioDevicePropertyVolumeScalar, &size, &canset);
@@ -513,7 +503,6 @@ static bool userIsCmndTabbing = false;
 	if(noErr!=err) NSLog(@"error setting volume of channel %d",channels[0]);
 	err = AudioDeviceSetProperty(device, 0, channels[1], false, kAudioDevicePropertyVolumeScalar, size, &involume);
 	if(noErr!=err) NSLog(@"error setting volume of channel %d",channels[1]);
-	
 }
 
 -(void)brightnessControl:(LeapHand *)hands andFingers:(NSMutableArray *) fingers;
@@ -600,6 +589,10 @@ static bool userIsCmndTabbing = false;
     
     NSUInteger fingerCount = [fingers count];
     
+    CGFloat scaleProbability = [frame scaleProbability:[aController frame:1]];
+    CGFloat translationProbability = [frame translationProbability:[aController frame:1]];
+    CGFloat rotationProbability = [frame rotationProbability:[aController frame:1]];
+    
     if(fingerCount==0)
     {
         startSymbol=1;
@@ -611,7 +604,7 @@ static bool userIsCmndTabbing = false;
         [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
-        if([frame scaleProbability:[aController frame:1] ] > [frame translationProbability:[aController frame:1]]) {
+        if( scaleProbability > translationProbability) {
             [self pinchAndZoom:fingers withController: aController];
         }
         else {
@@ -620,6 +613,10 @@ static bool userIsCmndTabbing = false;
     }
     //ALERT: Why was this if( fingerCount >= 3) ??
     else if (fingerCount==3)
+    {
+        rotationProbability > translationProbability ? [self volumeControl:hand andController:aController] : [self dragCursorWithFinger:[fingers objectAtIndex:0] controller:aController];
+    }
+    else if (fingerCount==4)
     {
         [self volumeControl:hand andController:aController];
     }
@@ -636,7 +633,7 @@ static bool userIsCmndTabbing = false;
             [self cmndTabWithFinger:[fingers objectAtIndex:0] controller:aController];
         }
         else {
-            if([frame scaleProbability:[aController frame:1] ] > [frame translationProbability:[aController frame:1]]) {
+            if(scaleProbability > translationProbability) {
                 [self brightnessControl:hand andFingers:fingers];
             }
             else {
@@ -666,9 +663,7 @@ static bool userIsCmndTabbing = false;
 }
 -(void) pressKey:(int)key down:(BOOL)pressDown{
     CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
-    
     CGEventPost(kCGHIDEventTap, downEvent);
-    
     CFRelease(downEvent);
 }
 @end
