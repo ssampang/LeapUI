@@ -57,6 +57,8 @@ static float startSymbol=1;
 /* BRIGHTNESS CONTROL VARS */
 static float prevRadius=0;
 static float startSymbolR=1;
+const int kMaxDisplays = 16;
+const CFStringRef kDisplayBrightness = CFSTR(kIODisplayBrightnessKey);
 
 /* VOLUME CONTROL VARS */
 static float prevRotationAngle=0;
@@ -515,13 +517,13 @@ static bool userIsCmndTabbing = false;
     const float radiusthreshold=2.2;
     if(radius - prevRadius>=radiusthreshold)
     {
-        //NSLog(@"Increase the Brightness");
-        //[self setVolume: [self getVolume] +0.05];
+        NSLog(@"Increase the Brightness");
+        [self set_brightness:[self get_brightness]+0.05];
             }
     else if(prevRadius - radius>=radiusthreshold)
     {
-       // NSLog(@"Decrease the Brightness");
-       // [self setVolume: [self getVolume] -0.05];
+        NSLog(@"Decrease the Brightness");
+       [self set_brightness:[self get_brightness]-0.05];
     }
     prevRadius=radius;
     }
@@ -629,6 +631,7 @@ static bool userIsCmndTabbing = false;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
+        [self brightnessControl:hand andFinger:fingers];
         if(userIsCmndTabbing) {
             [self cmndTabWithFinger:[fingers objectAtIndex:0] controller:aController];
         }
@@ -661,6 +664,81 @@ static bool userIsCmndTabbing = false;
     }
 
 }
+
+- (float) get_brightness {
+	CGDirectDisplayID display[kMaxDisplays];
+	CGDisplayCount numDisplays;
+	CGDisplayErr err;
+	err = CGGetActiveDisplayList(kMaxDisplays, display, &numDisplays);
+	
+	if (err != CGDisplayNoErr)
+		printf("cannot get list of displays (error %d)\n",err);
+	for (CGDisplayCount i = 0; i < numDisplays; ++i) {
+		
+		
+		CGDirectDisplayID dspy = display[i];
+		CFDictionaryRef originalMode = CGDisplayCurrentMode(dspy);
+		if (originalMode == NULL)
+			continue;
+		io_service_t service = CGDisplayIOServicePort(dspy);
+		
+		float brightness;
+		err= IODisplayGetFloatParameter(service, kNilOptions, kDisplayBrightness,
+										&brightness);
+		if (err != kIOReturnSuccess) {
+			fprintf(stderr,
+					"failed to get brightness of display 0x%x (error %d)",
+					(unsigned int)dspy, err);
+			continue;
+		}
+		return brightness;
+	}
+	return -1.0;//couldn't get brightness for any display
+}
+
+- (void) set_brightness:(float) new_brightness {
+	CGDirectDisplayID display[kMaxDisplays];
+	CGDisplayCount numDisplays;
+	CGDisplayErr err;
+	err = CGGetActiveDisplayList(kMaxDisplays, display, &numDisplays);
+	
+	if (err != CGDisplayNoErr)
+		printf("cannot get list of displays (error %d)\n",err);
+	for (CGDisplayCount i = 0; i < numDisplays; ++i) {
+		
+		
+		CGDirectDisplayID dspy = display[i];
+		CFDictionaryRef originalMode = CGDisplayCurrentMode(dspy);
+		if (originalMode == NULL)
+			continue;
+        io_service_t service = CGDisplayIOServicePort(dspy);
+		/*
+		float brightness;
+		err= IODisplayGetFloatParameter(service, kNilOptions, kDisplayBrightness,
+										&brightness);
+		if (err != kIOReturnSuccess) {
+			fprintf(stderr,
+					"failed to get brightness of display 0x%x (error %d)",
+					(unsigned int)dspy, err);
+			continue;
+		}
+        */
+		err = IODisplaySetFloatParameter(service, kNilOptions, kDisplayBrightness,
+										 new_brightness);
+		if (err != kIOReturnSuccess) {
+			fprintf(stderr,
+					"Failed to set brightness of display 0x%x (error %d)",
+                    (unsigned int)dspy, err);
+			continue;
+		}
+		
+	/*	if(brightness > 0.0){
+		}else{
+		}*/
+	}		
+	
+}
+
 -(void) pressKey:(int)key down:(BOOL)pressDown{
     CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
     CGEventPost(kCGHIDEventTap, downEvent);
