@@ -15,6 +15,9 @@
 #import <CoreAudio/CoreAudio.h>
 
 #define DEBUG 0
+#define testGestures 0
+
+#define fequal(a,b) (fabs((a) - (b)) < FLT_EPSILON)
 
 /* Cursor movement values */
 #define MIN_VIEW_THRESHOLD 70
@@ -39,8 +42,7 @@ static LeapFrame *prevFrame;
 static CGFloat fieldOfViewScale;
 static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
-static bool leftClickDown = NO;
-static NSDate *leftClickDownTime;
+static BOOL leftClickClicked = NO;
 static int statusItemColor = 0; /* 1 = red; 2 = yellow; 3 = green;*/
 
 static NSImage *red;
@@ -93,11 +95,6 @@ static bool userIsCmndTabbing = false;
     [statusItem setHighlightMode:YES];
 }
 
-- (void) setStatusBarImage: (NSImage *) img {
-    [statusItem setImage:img];
-    [statusItem setHighlightMode:YES];
-}
-
 - (void)onInit:(NSNotification *)notification
 {
     NSLog(@"Initialized");
@@ -135,7 +132,6 @@ static bool userIsCmndTabbing = false;
     NSPoint mouseLoc = [NSEvent mouseLocation];
     CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
     
-    if(!leftClickDown) {
         CGEventRef clickLeftDown = CGEventCreateMouseEvent(
                                                        NULL, kCGEventLeftMouseDown,
                                                        clickPosition,
@@ -144,10 +140,7 @@ static bool userIsCmndTabbing = false;
         CGEventSetType(clickLeftDown, kCGEventLeftMouseDown);
         CGEventPost(kCGHIDEventTap, clickLeftDown);
         CFRelease(clickLeftDown);
-        leftClickDown = YES;
-        leftClickDownTime = [NSDate date];
-    }
-    else {
+
         CGEventRef clickLeftUp = CGEventCreateMouseEvent(
                                                        NULL, kCGEventLeftMouseUp,
                                                        clickPosition,
@@ -156,9 +149,8 @@ static bool userIsCmndTabbing = false;
         CGEventSetType(clickLeftUp, kCGEventLeftMouseUp);
         CGEventPost(kCGHIDEventTap, clickLeftUp);
         CFRelease(clickLeftUp);
-        leftClickDown = NO;
-        leftClickDownTime = [NSDate date];
-    }
+    
+    leftClickClicked = YES;
 }
 
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
@@ -169,9 +161,13 @@ static bool userIsCmndTabbing = false;
             [self setStatusBarImage: green];
             statusItemColor = 1;
         }
-        if(!leftClickDown){
+        if(!leftClickClicked){
             [self click];
-            if(userIsCmndTabbing == true) userIsCmndTabbing = false;
+            if(userIsCmndTabbing == YES) {
+                userIsCmndTabbing = NO;
+                //[self pressKey:kVK_Command down:false];
+                //[self pressKey:kVK_Tab down:false];
+            }
         }
         return;
     }
@@ -180,7 +176,7 @@ static bool userIsCmndTabbing = false;
             [self setStatusBarImage: yellow];
             statusItemColor = 2;
         }
-        if(leftClickDown) [self click];
+        if(leftClickClicked) leftClickClicked = NO;
         return;
     }
     else {
@@ -262,6 +258,7 @@ static bool userIsCmndTabbing = false;
         
         cmndTabMenuIsVisible = true;
     }
+    
     else [self moveCursorWithFinger:finger controller:aController];
 }
 
@@ -603,23 +600,34 @@ static bool userIsCmndTabbing = false;
     }
     
     else if(fingerCount == 1) {
+        if(testGestures) [self testGestureRecognition:1];
         [self moveCursorWithFinger: [fingers objectAtIndex:0] controller: aController];
     }
     else if(fingerCount == 2) {
-        if( scaleProbability > translationProbability) {
+        if(scaleProbability > translationProbability) {
+            if(testGestures) [self testGestureRecognition:3];
             [self pinchAndZoom:fingers withController: aController];
         }
         else {
+            if(testGestures) [self testGestureRecognition:2];
             [self scrollWithFingers: fingers andController: aController];
         }
     }
     //ALERT: Why was this if( fingerCount >= 3) ??
     else if (fingerCount==3)
     {
-        rotationProbability > translationProbability ? [self volumeControl:hand andController:aController] : [self dragCursorWithFinger:[fingers objectAtIndex:0] controller:aController];
+        if(rotationProbability > translationProbability) {
+            if(testGestures) [self testGestureRecognition:5];
+            [self volumeControl:hand andController:aController];
+        }
+        else {
+            if(testGestures) [self testGestureRecognition:6];
+            [self dragCursorWithFinger:[fingers objectAtIndex:0] controller:aController];
+        }
     }
     else if (fingerCount==4)
     {
+        if(testGestures) [self testGestureRecognition:5];
         [self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
@@ -631,15 +639,56 @@ static bool userIsCmndTabbing = false;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
-        [self brightnessControl:hand andFingers:fingers];
+        
         if(userIsCmndTabbing) {
+            if(testGestures) [self testGestureRecognition: 7];
             [self cmndTabWithFinger:[fingers objectAtIndex:0] controller:aController];
         }
         else {
-            if(scaleProbability > translationProbability) {
-                [self brightnessControl:hand andFingers:fingers];
+                        
+            if(scaleProbability > translationProbability ) {
+                if( scaleProbability > rotationProbability) {
+                    if(testGestures) [self testGestureRecognition: 4];
+                    //[self brightnessControl:hand andFingers:fingers];
+                }
+                else {
+                    if(testGestures) [self testGestureRecognition:5];
+                    [self volumeControl:hand andController:aController];
+                }
             }
             else {
+                if( translationProbability > rotationProbability) {
+                    NSArray *gestures = [frame gestures:nil];
+                    LeapSwipeGesture *swipeGesture = nil;
+                    for (int i = 0; i < [gestures count]; i++) {
+                        if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
+                            swipeGesture = [gestures objectAtIndex:i];
+                            break;
+                        }
+                    }
+                    
+                    if(swipeGesture == nil) return;
+                    
+                    LeapVector *swipeDirection = swipeGesture.direction;
+                    if(swipeDirection.x > swipeDirection.y) return;
+                    userIsCmndTabbing = true;
+                    if(testGestures) [self testGestureRecognition: 7];
+                    [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
+                    return;
+
+                }
+                else {
+                    if(testGestures) [self testGestureRecognition:5];
+                    [self volumeControl:hand andController:aController];
+                }
+            }
+            
+            /*CGFloat maxProb = MAX(scaleProbability, MAX(translationProbability, rotationProbability));
+             if(fequal(maxProb, scaleProbability)) {
+             if(testGestures) [self testGestureRecognition: 4];
+             //[self brightnessControl:hand andFingers:fingers];
+            }
+            else if(fequal(maxProb, translationProbability)) {
                 NSArray *gestures = [frame gestures:nil];
                 LeapSwipeGesture *swipeGesture = nil;
                 for (int i = 0; i < [gestures count]; i++) {                
@@ -654,15 +703,72 @@ static bool userIsCmndTabbing = false;
                 LeapVector *swipeDirection = swipeGesture.direction;
                 if(swipeDirection.x > swipeDirection.y) return;
                 userIsCmndTabbing = true;
+                if(testGestures) [self testGestureRecognition: 7];
                 [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
                 return;
             }
+            else {
+                if(testGestures) [self testGestureRecognition:5];
+                [self volumeControl:hand andController:aController];
+            }*/
+
         }
     }
     else {
         //NSLog(@"Nothing significant is happening");
     }
 
+}
+
+-(void) pressKey:(int)key down:(BOOL)pressDown{
+    CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
+    CGEventPost(kCGHIDEventTap, downEvent);
+    CFRelease(downEvent);
+}
+
+- (void) setStatusBarImage: (NSImage *) img {
+    [statusItem setImage:img];
+    [statusItem setHighlightMode:YES];
+}
+
+/* This method is purely to test how well our program can recognize individual gestures */
+static int currentGesture = 0;
+- (void) testGestureRecognition: (int) gestureID {
+    //if(gestureID != currentGesture) {
+        switch (gestureID) {
+            case 1:
+                NSLog(@"Moving cursor");
+                break;
+            
+            case 2:
+                NSLog(@"Scrolling");
+                break;
+            
+            case 3:
+                NSLog(@"Zooming");
+                break;
+                
+            case 4:
+                NSLog(@"Brightness");
+                break;
+            
+            case 5:
+                NSLog(@"Volume Control");
+                break;
+                
+            case 6:
+                NSLog(@"Dragging");
+                break;
+                
+            case 7:
+                NSLog(@"Cmnd Tabbing");
+                break;
+                
+            default:
+                break;
+        }
+        currentGesture = gestureID;
+    //}
 }
 
 - (float) get_brightness {
@@ -713,16 +819,16 @@ static bool userIsCmndTabbing = false;
 			continue;
         io_service_t service = CGDisplayIOServicePort(dspy);
 		/*
-		float brightness;
-		err= IODisplayGetFloatParameter(service, kNilOptions, kDisplayBrightness,
-										&brightness);
-		if (err != kIOReturnSuccess) {
-			fprintf(stderr,
-					"failed to get brightness of display 0x%x (error %d)",
-					(unsigned int)dspy, err);
-			continue;
-		}
-        */
+         float brightness;
+         err= IODisplayGetFloatParameter(service, kNilOptions, kDisplayBrightness,
+         &brightness);
+         if (err != kIOReturnSuccess) {
+         fprintf(stderr,
+         "failed to get brightness of display 0x%x (error %d)",
+         (unsigned int)dspy, err);
+         continue;
+         }
+         */
 		err = IODisplaySetFloatParameter(service, kNilOptions, kDisplayBrightness,
 										 new_brightness);
 		if (err != kIOReturnSuccess) {
@@ -732,17 +838,11 @@ static bool userIsCmndTabbing = false;
 			continue;
 		}
 		
-	/*	if(brightness > 0.0){
-		}else{
-		}*/
+        /*	if(brightness > 0.0){
+         }else{
+         }*/
 	}		
 	
-}
-
--(void) pressKey:(int)key down:(BOOL)pressDown{
-    CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
-    CGEventPost(kCGHIDEventTap, downEvent);
-    CFRelease(downEvent);
 }
 @end
 
