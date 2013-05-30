@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1F0C289A1751DA4300EB5853 /* yellow.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 1F0C28991751DA4300EB5853 /* yellow.jpg */; };
+		1F0C289C175707CC00EB5853 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F0C289B175707CC00EB5853 /* IOKit.framework */; };
 		1F5FF8F61749EA4700F942F9 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F5FF8F51749EA4700F942F9 /* Carbon.framework */; };
 		1F62A5DF172DF75700154A2C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1F62A5DE172DF75700154A2C /* Cocoa.framework */; };
 		1F62A5E9172DF75700154A2C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 1F62A5E7172DF75700154A2C /* InfoPlist.strings */; };
@@ -40,6 +41,7 @@
 
 /* Begin PBXFileReference section */
 		1F0C28991751DA4300EB5853 /* yellow.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = yellow.jpg; sourceTree = "<group>"; };
+		1F0C289B175707CC00EB5853 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		1F5FF8F51749EA4700F942F9 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		1F62A5DB172DF75700154A2C /* LeapUI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LeapUI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1F62A5DE172DF75700154A2C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -71,6 +73,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F0C289C175707CC00EB5853 /* IOKit.framework in Frameworks */,
 				1FD6AB2A174D5459000075BC /* CoreAudio.framework in Frameworks */,
 				1FD6AB22174A2A80000075BC /* Foundation.framework in Frameworks */,
 				1F5FF8F61749EA4700F942F9 /* Carbon.framework in Frameworks */,
@@ -85,6 +88,7 @@
 		1F62A5D2172DF75700154A2C = {
 			isa = PBXGroup;
 			children = (
+				1F0C289B175707CC00EB5853 /* IOKit.framework */,
 				1F62A5E4172DF75700154A2C /* LeapUI */,
 				1F62A5DD172DF75700154A2C /* Frameworks */,
 				1F62A5DC172DF75700154A2C /* Products */,

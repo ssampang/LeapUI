@@ -631,7 +631,7 @@ static bool userIsCmndTabbing = false;
         CGEventSetType(move, kCGEventMouseMoved);
         CGEventPost(kCGHIDEventTap, move);
         CFRelease(move);*/
-        [self brightnessControl:hand andFinger:fingers];
+        [self brightnessControl:hand andFingers:fingers];
         if(userIsCmndTabbing) {
             [self cmndTabWithFinger:[fingers objectAtIndex:0] controller:aController];
         }
