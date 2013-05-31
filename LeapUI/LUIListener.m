@@ -175,8 +175,9 @@ static bool userIsCmndTabbing = false;
             leftClickClicked = YES;
             if(userIsCmndTabbing == YES) {
                 userIsCmndTabbing = NO;
-                //[self pressKey:kVK_Command down:false];
-                //[self pressKey:kVK_Tab down:false];
+                cmndTabMenuIsVisible = NO;
+                [self pressKey:kVK_Command down:false];
+                [self pressKey:kVK_Tab down:false];
             }
         }
         return;
@@ -306,6 +307,10 @@ static bool userIsCmndTabbing = false;
 
 - (void) cmndTabWithFinger: (LeapFinger *) finger controller: (LeapController *) aController {
     if(!cmndTabMenuIsVisible) {
+        
+        [self pressKey:kVK_Command down:false];
+        [self pressKey:kVK_Tab down:false];
+        
         [self pressKey:kVK_Command down:true];
         [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
         [self pressKey:kVK_Tab down:true];
@@ -633,7 +638,7 @@ static bool userIsCmndTabbing = false;
     {
         if(rotationProbability > translationProbability) {
             if(testGestures) [self testGestureRecognition:5];
-            [self volumeControl:hand andController:aController];
+            //[self volumeControl:hand andController:aController];
         }
         else {
             if(testGestures) [self testGestureRecognition:6];
@@ -643,7 +648,7 @@ static bool userIsCmndTabbing = false;
     else if (fingerCount==4)
     {
         if(testGestures) [self testGestureRecognition:5];
-        [self volumeControl:hand andController:aController];
+        //[self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
