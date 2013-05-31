@@ -638,7 +638,7 @@ static bool userIsCmndTabbing = false;
     {
         if(rotationProbability > translationProbability) {
             if(testGestures) [self testGestureRecognition:5];
-            //[self volumeControl:hand andController:aController];
+            [self volumeControl:hand andController:aController];
         }
         else {
             if(testGestures) [self testGestureRecognition:6];
@@ -648,7 +648,7 @@ static bool userIsCmndTabbing = false;
     else if (fingerCount==4)
     {
         if(testGestures) [self testGestureRecognition:5];
-        //[self volumeControl:hand andController:aController];
+        [self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
@@ -665,26 +665,7 @@ static bool userIsCmndTabbing = false;
             [self cmndTabWithFinger:[fingers leftmost] controller:aController];
         }
         else {
-            
-            NSArray *gestures = [frame gestures:nil];
-            LeapSwipeGesture *swipeGesture = nil;
-            for (int i = 0; i < [gestures count]; i++) {
-                if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
-                    swipeGesture = [gestures objectAtIndex:i];
-                    break;
-                }
-            }
-            
-            if(swipeGesture == nil) return;
-            
-            LeapVector *swipeDirection = swipeGesture.direction;
-            if(swipeDirection.x > swipeDirection.y) return;
-            userIsCmndTabbing = true;
-            if(testGestures) [self testGestureRecognition: 7];
-            [self cmndTabWithFinger:[fingers leftmost] controller: aController];
-            return;
-            
-            /*if(scaleProbability > translationProbability ) {
+           if(scaleProbability > translationProbability ) {
                 if( scaleProbability > rotationProbability) {
                     if(testGestures) [self testGestureRecognition: 4];
                     //[self brightnessControl:hand andFingers:fingers];
@@ -719,7 +700,7 @@ static bool userIsCmndTabbing = false;
                     if(testGestures) [self testGestureRecognition:5];
                     [self volumeControl:hand andController:aController];
                 }
-            }*/
+            }
             
             /*CGFloat maxProb = MAX(scaleProbability, MAX(translationProbability, rotationProbability));
              if(fequal(maxProb, scaleProbability)) {
