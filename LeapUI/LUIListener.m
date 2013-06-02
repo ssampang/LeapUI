@@ -47,9 +47,56 @@ static BOOL leftClickClicked = NO;
 /* STATUS ITEM VARS */
 static int statusItemColor = 0; /* 1 = red; 2 = yellow; 3 = green;*/
 
-static NSImage *red;
-static NSImage *yellow;
-static NSImage *green;
+typedef enum {
+    LgreenQ = 0,
+    Lgreen1 = 1,
+    Lgreen2 = 2,
+    Lgreen3 = 3,
+    Lgreen4 = 4,
+    Lgreen5 = 5,
+    
+    LyellowQ = 6,
+    Lyellow1 = 7,
+    Lyellow2 = 8,
+    Lyellow3 = 9,
+    Lyellow4 = 10,
+    Lyellow5 = 11,
+    
+    LredQ = 12,
+    Lred1 = 13,
+    Lred2 = 14,
+    Lred3 = 15,
+    Lred4 = 16,
+    Lred5 = 17,
+    Lred0 = 18
+} imageNumber;
+
+/* Status Item constants */
+static const int LbaseGreen = 0;
+static const int LbaseYellow = 6;
+static const int LbaseRed = 12;
+
+static NSImage *redQ;
+static NSImage *red0;
+static NSImage *red1;
+static NSImage *red2;
+static NSImage *red3;
+static NSImage *red4;
+static NSImage *red5;
+
+static NSImage *yellowQ;
+static NSImage *yellow1;
+static NSImage *yellow2;
+static NSImage *yellow3;
+static NSImage *yellow4;
+static NSImage *yellow5;
+
+static NSImage *greenQ;
+static NSImage *green1;
+static NSImage *green2;
+static NSImage *green3;
+static NSImage *green4;
+static NSImage *green5;
 
 /* DRAGGING VARS */
 static BOOL leftClickDown = NO;
@@ -88,18 +135,64 @@ static bool userIsCmndTabbing = false;
     //[statusItem setTitle:@"Test"];
     NSBundle *bundle = [NSBundle mainBundle];
     
-    red = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red" ofType:@"jpg"] ];
-    [red setSize:NSMakeSize(20, 20)];
+    redQ = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red?" ofType:@"jpg"] ];
+    [redQ setSize:NSMakeSize(20, 20)];
     
-    yellow = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow" ofType:@"jpg"] ];
-    [yellow setSize:NSMakeSize(20, 20)];
+    red0 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red0" ofType:@"jpg"] ];
+    [red0 setSize:NSMakeSize(20, 20)];
     
-    green = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green" ofType:@"jpg"] ];
-    [green setSize:NSMakeSize(20, 20)];
+    red1 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red1" ofType:@"jpg"] ];
+    [red1 setSize:NSMakeSize(20, 20)];
     
-    [red setSize:NSMakeSize(20, 20)];
-    [statusItem setImage:red];
-    [statusItem setHighlightMode:YES];
+    red2 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red2" ofType:@"jpg"] ];
+    [red2 setSize:NSMakeSize(20, 20)];
+    
+    red3 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red3" ofType:@"jpg"] ];
+    [red3 setSize:NSMakeSize(20, 20)];
+    
+    red4 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red4" ofType:@"jpg"] ];
+    [red4 setSize:NSMakeSize(20, 20)];
+    
+    red5 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"red5" ofType:@"jpg"] ];
+    [red5 setSize:NSMakeSize(20, 20)];
+    
+    yellowQ = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow?" ofType:@"jpg"] ];
+    [yellowQ setSize:NSMakeSize(20, 20)];
+    
+    yellow1 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow1" ofType:@"jpg"] ];
+    [yellow1 setSize:NSMakeSize(20, 20)];
+    
+    yellow2 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow2" ofType:@"jpg"] ];
+    [yellow2 setSize:NSMakeSize(20, 20)];
+    
+    yellow3 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow3" ofType:@"jpg"] ];
+    [yellow3 setSize:NSMakeSize(20, 20)];
+    
+    yellow4 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow4" ofType:@"jpg"] ];
+    [yellow4 setSize:NSMakeSize(20, 20)];
+    
+    yellow5 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"yellow5" ofType:@"jpg"] ];
+    [yellow5 setSize:NSMakeSize(20, 20)];
+    
+    greenQ = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green?" ofType:@"jpg"] ];
+    [greenQ setSize:NSMakeSize(20, 20)];
+
+    green1 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green1" ofType:@"jpg"] ];
+    [green1 setSize:NSMakeSize(20, 20)];
+
+    green2 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green2" ofType:@"jpg"] ];
+    [green2 setSize:NSMakeSize(20, 20)];
+
+    green3 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green3" ofType:@"jpg"] ];
+    [green3 setSize:NSMakeSize(20, 20)];
+
+    green4 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green4" ofType:@"jpg"] ];
+    [green4 setSize:NSMakeSize(20, 20)];
+
+    green5 = [[NSImage alloc]initWithContentsOfFile:[bundle pathForResource:@"green5" ofType:@"jpg"] ];
+    [green5 setSize:NSMakeSize(20, 20)];
+    
+    [self setStatusBarImage:red0];
 }
 
 - (void)onInit:(NSNotification *)notification
@@ -145,30 +238,123 @@ static bool userIsCmndTabbing = false;
     CFRelease(click);
 }
 
-- (void) setStatusItemColor: (LeapFinger *) finger {
+- (void) setStatusItemColor: (LeapFinger *) finger WithFingers: (int) numOfFingers{
+    
+    if(!finger){
+        if(statusItemColor != Lred0){
+            [self setStatusBarImage:red0];
+            statusItemColor = Lred0;
+        }
+        return;
+    }
+
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
-        if(statusItemColor != 1) {
-            [self setStatusBarImage: green];
-            statusItemColor = 1;
+        if(statusItemColor != LbaseGreen + numOfFingers){
+            statusItemColor = LbaseGreen + numOfFingers;
+            
+            switch (statusItemColor) {
+                case LgreenQ:
+                    [self setStatusBarImage: greenQ];
+                    break;
+                
+                case Lgreen1:
+                    [self setStatusBarImage:green1];
+                    break;
+                    
+                case Lgreen2:
+                    [self setStatusBarImage:green2];
+                    break;
+                    
+                case Lgreen3:
+                    [self setStatusBarImage:green3];
+                    break;
+                
+                case Lgreen4:
+                    [self setStatusBarImage:green4];
+                    break;
+                
+                case Lgreen5:
+                    [self setStatusBarImage:green5];
+                    break;
+                    
+                default:
+                    break;
+            }
         }
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
-        if(statusItemColor != 2) {
-            [self setStatusBarImage: yellow];
-            statusItemColor = 2;
+        if(statusItemColor != LbaseYellow + numOfFingers){
+            statusItemColor = LbaseYellow + numOfFingers;
+            
+            switch (statusItemColor) {
+                case LyellowQ:
+                    [self setStatusBarImage: yellowQ];
+                    break;
+                    
+                case Lyellow1:
+                    [self setStatusBarImage:yellow1];
+                    break;
+                    
+                case Lyellow2:
+                    [self setStatusBarImage:yellow2];
+                    break;
+                    
+                case Lyellow3:
+                    [self setStatusBarImage:yellow3];
+                    break;
+                    
+                case Lyellow4:
+                    [self setStatusBarImage:yellow4];
+                    break;
+                    
+                case Lyellow5:
+                    [self setStatusBarImage:yellow5];
+                    break;
+                    
+                default:
+                    break;
+            }
         }
     }
     else {
-        if(statusItemColor != 3) {
-            [self setStatusBarImage: red];
-            statusItemColor = 3;
+        if(statusItemColor != LbaseRed + numOfFingers){
+            statusItemColor = LbaseRed + numOfFingers;
+            
+            switch (statusItemColor) {
+                case LredQ:
+                    [self setStatusBarImage: redQ];
+                    break;
+                    
+                case Lred1:
+                    [self setStatusBarImage:red1];
+                    break;
+                    
+                case Lred2:
+                    [self setStatusBarImage:red2];
+                    break;
+                    
+                case Lred3:
+                    [self setStatusBarImage:red3];
+                    break;
+                    
+                case Lred4:
+                    [self setStatusBarImage:red4];
+                    break;
+                    
+                case Lred5:
+                    [self setStatusBarImage:red5];
+                    break;
+                    
+                default:
+                    break;
+            }
         }
     }
 }
 
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
     
-    [self setStatusItemColor:finger];
+    //[self setStatusItemColor:finger WithFingers:1];
     /* CLICKING */
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
         if(!leftClickClicked){
@@ -243,7 +429,7 @@ static bool userIsCmndTabbing = false;
 - (void) dragCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
     //if(finger.tipPosition.z > MIN_CLICK_THRESHOLD) return;
     
-    [self setStatusItemColor:finger];
+    //[self setStatusItemColor:finger WithFingers:3];
     NSPoint mouseLoc = [NSEvent mouseLocation];
     CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
     
@@ -307,7 +493,7 @@ static bool userIsCmndTabbing = false;
 
 - (void) cmndTabWithFinger: (LeapFinger *) finger controller: (LeapController *) aController {
     if(!cmndTabMenuIsVisible) {
-        
+        //[self setStatusItemColor:finger WithFingers:5];
         [self pressKey:kVK_Command down:false];
         [self pressKey:kVK_Tab down:false];
         
@@ -321,7 +507,7 @@ static bool userIsCmndTabbing = false;
         cmndTabMenuIsVisible = true;
     }
     
-    else [self moveCursorWithFinger:finger controller:aController];
+    //else [self moveCursorWithFinger:finger controller:aController];
 }
 
 - (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController
@@ -338,12 +524,12 @@ static bool userIsCmndTabbing = false;
     LeapVector *currentTipPosition = [fingers[0] tipPosition];
     LeapVector *previousTipPosition = [previousFrame finger: [ (LeapFinger *)fingers[0] id]].tipPosition;
     
-    [self setStatusItemColor:[fingers leftmost]];
     if ( previousFrame != NULL){
         //NSLog(@"Translation Probability: %f", [frame translationProbability:comparisonFrame]);
         //NSLog(@"Distance scrolled: %f: ", [frame translation:comparisonFrame].magnitude);
        
         if([currentFrame translationProbability: previousFrame] > 0.4) {
+            //[self setStatusItemColor:[fingers leftmost] WithFingers:2];
             if (currentTipPosition.z < MIN_CLICK_THRESHOLD  ){
                 CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
                                                                       previousTipPosition.y - currentTipPosition.y);
@@ -414,8 +600,8 @@ static bool userIsCmndTabbing = false;
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Equal down:true];
             
-            //[self pressKey:kVK_Command down:false];
-            //[self pressKey:kVK_ANSI_Equal down:false];
+            [self pressKey:kVK_Command down:false];
+            [self pressKey:kVK_ANSI_Equal down:false];
         }
         else if ( prevTipdistance - distance > disThreshold&&startSymbol!=1){
             NSLog(@"Pinch Gesture dectected");
@@ -423,8 +609,8 @@ static bool userIsCmndTabbing = false;
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
             [self pressKey:kVK_ANSI_Minus down:true];
             
-            //[self pressKey:kVK_Command down:false];
-            //[self pressKey:kVK_ANSI_Minus down:false];
+            [self pressKey:kVK_Command down:false];
+            [self pressKey:kVK_ANSI_Minus down:false];
         }
         else if(startSymbol!=1)
         {
@@ -604,6 +790,8 @@ static bool userIsCmndTabbing = false;
     
     NSUInteger fingerCount = [fingers count];
     
+    [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
+    
     CGFloat scaleProbability = [frame scaleProbability:[aController frame:1]];
     CGFloat translationProbability = [frame translationProbability:[aController frame:1]];
     CGFloat rotationProbability = [frame rotationProbability:[aController frame:1]];
@@ -638,7 +826,7 @@ static bool userIsCmndTabbing = false;
     {
         if(rotationProbability > translationProbability) {
             if(testGestures) [self testGestureRecognition:5];
-            [self volumeControl:hand andController:aController];
+            //[self volumeControl:hand andController:aController];
         }
         else {
             if(testGestures) [self testGestureRecognition:6];
@@ -648,7 +836,7 @@ static bool userIsCmndTabbing = false;
     else if (fingerCount==4)
     {
         if(testGestures) [self testGestureRecognition:5];
-        [self volumeControl:hand andController:aController];
+        //[self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
         //Sid: This can be changed later
@@ -668,11 +856,11 @@ static bool userIsCmndTabbing = false;
            if(scaleProbability > translationProbability ) {
                 if( scaleProbability > rotationProbability) {
                     if(testGestures) [self testGestureRecognition: 4];
-                    //[self brightnessControl:hand andFingers:fingers];
+                    [self brightnessControl:hand andFingers:fingers];
                 }
                 else {
                     if(testGestures) [self testGestureRecognition:5];
-                    [self volumeControl:hand andController:aController];
+                    //[self volumeControl:hand andController:aController];
                 }
             }
             else {
@@ -698,7 +886,7 @@ static bool userIsCmndTabbing = false;
                 }
                 else {
                     if(testGestures) [self testGestureRecognition:5];
-                    [self volumeControl:hand andController:aController];
+                    //[self volumeControl:hand andController:aController];
                 }
             }
             
