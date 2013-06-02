@@ -37,8 +37,6 @@
 static bool clickingFinger;
 
 /* NAVIGATION VARS */
-static BOOL clickMoving = YES;
-static LeapFrame *clickPrevFrame;
 static CGFloat fieldOfViewScale;
 static CGFloat mainScreenWidth;
 static CGFloat mainScreenHeight;
@@ -100,8 +98,6 @@ static NSImage *green5;
 
 /* DRAGGING VARS */
 static BOOL leftClickDown = NO;
-static BOOL dragMoving = NO;
-static LeapFrame *dragPrevFrame;
 
 /* SCROLLING VARS */
 static LeapVector *scrollingVelocity;
@@ -227,7 +223,7 @@ static bool userIsCmndTabbing = false;
     NSLog(@"Exited");
 }
 
-- (void) clickAtPosition: (CGPoint) position withEvent: (CGEventType) eventType andButton: (CGMouseButton) button{
+- (void) postEvent: (CGEventType) eventType atPosition: (CGPoint) position withButton: (CGMouseButton) button{
     CGEventRef click = CGEventCreateMouseEvent(
                                                        NULL, eventType,
                                                        position,
@@ -353,8 +349,6 @@ static bool userIsCmndTabbing = false;
 }
 
 - (void) moveCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
-    
-    //[self setStatusItemColor:finger WithFingers:1];
     /* CLICKING */
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
         if(!leftClickClicked){
@@ -372,9 +366,9 @@ static bool userIsCmndTabbing = false;
         if(leftClickClicked) {
             NSPoint mouseLoc = [NSEvent mouseLocation];
             CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
-            [self clickAtPosition:clickPosition withEvent:kCGEventLeftMouseDown andButton:kCGMouseButtonLeft];
+            [self postEvent: kCGEventLeftMouseDown atPosition:clickPosition withButton:kCGMouseButtonLeft];
             [NSThread sleepForTimeInterval:0.1];
-            [self clickAtPosition:clickPosition withEvent:kCGEventLeftMouseUp andButton:kCGMouseButtonLeft];
+            [self postEvent: kCGEventLeftMouseUp atPosition:clickPosition withButton:kCGMouseButtonLeft];
             leftClickClicked = NO;
         }
         return;
@@ -382,11 +376,7 @@ static bool userIsCmndTabbing = false;
     
     /* MOVEMENT */
     NSPoint mouseLoc = [NSEvent mouseLocation];
-    LeapFrame *previousFrame;
-    if(clickMoving) previousFrame = [aController frame:1];
-    else previousFrame = clickPrevFrame;
-    
-    LeapFinger *prevFinger = [previousFrame finger:[finger id]];
+    LeapFinger *prevFinger = [[aController frame:1] finger:[finger id]];
     if(![prevFinger isValid]) return;
     
     CGFloat velocity = powf((powf(finger.tipVelocity.x,2) + powf(finger.tipVelocity.y,2)),0.5);
@@ -396,12 +386,7 @@ static bool userIsCmndTabbing = false;
     CGFloat deltaX = (float) lroundf((finger.tipPosition.x - prevFinger.tipPosition.x) * scale);
     CGFloat deltaY = (float) lroundf((finger.tipPosition.y - prevFinger.tipPosition.y) * scale);
     
-    if(deltaX == 0 && deltaY == 0) {
-        clickPrevFrame = previousFrame;
-        clickMoving = NO;
-        return;
-    }
-    else clickMoving = YES;
+    if(deltaX == 0 && deltaY == 0) return;
     
     CGFloat xpos = mouseLoc.x + deltaX;
     
@@ -415,7 +400,7 @@ static bool userIsCmndTabbing = false;
     
     CGPoint fingerTip = CGPointMake(xpos,ypos);
     
-    [self clickAtPosition:fingerTip withEvent:kCGEventMouseMoved andButton:kCGMouseButtonLeft];
+    [self postEvent: kCGEventMouseMoved atPosition:fingerTip withButton:kCGMouseButtonLeft];
     
     if(DEBUG) {NSLog(@"\nLeapFinger location:\t%f , %f\n\t\t\tMouseXY:\t%f , %f\n\tFinal Position: \t%f, %f\n\t\t\tDeltaXY:\t%f, %f\n\t\t\tVelocity:\t%f\n\n",
                      finger.tipPosition.x, finger.tipPosition.y,
@@ -427,29 +412,24 @@ static bool userIsCmndTabbing = false;
 }
 
 - (void) dragCursorWithFinger: (LeapFinger *) finger controller: (LeapController *) aController{
-    //if(finger.tipPosition.z > MIN_CLICK_THRESHOLD) return;
-    
-    //[self setStatusItemColor:finger WithFingers:3];
     NSPoint mouseLoc = [NSEvent mouseLocation];
     CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
     
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
         if(!leftClickDown){
-            [self clickAtPosition:clickPosition withEvent:kCGEventLeftMouseDown andButton:kCGMouseButtonLeft];
+            [self postEvent: kCGEventLeftMouseDown atPosition:clickPosition withButton:kCGMouseButtonLeft];
             leftClickDown = YES;
             return;
         }
     }
     else{
         if(leftClickDown) {
-            [self clickAtPosition:clickPosition withEvent:kCGEventLeftMouseUp andButton:kCGMouseButtonLeft];
+            [self postEvent: kCGEventLeftMouseUp atPosition:clickPosition withButton:kCGMouseButtonLeft];
             leftClickDown = NO;
         }
     }
     
-    LeapFrame *previousFrame;
-    if(dragMoving) previousFrame = [aController frame:1];
-    else previousFrame = dragPrevFrame;
+    LeapFrame *previousFrame = [aController frame:1];
     
     LeapFinger *prevFinger = [[previousFrame fingers] leftmost];
     //if(![prevFinger isValid]) return;
@@ -461,12 +441,7 @@ static bool userIsCmndTabbing = false;
     CGFloat deltaX = (float) lroundf((finger.tipPosition.x - prevFinger.tipPosition.x) * scale);
     CGFloat deltaY = (float) lroundf((finger.tipPosition.y - prevFinger.tipPosition.y) * scale);
     
-    if(deltaX == 0 && deltaY == 0) {
-        dragPrevFrame = previousFrame;
-        dragMoving = NO;
-        return;
-    }
-    else dragMoving = YES;
+    if(deltaX == 0 && deltaY == 0) return;
     
     CGFloat xpos = mouseLoc.x + deltaX;
     
@@ -480,7 +455,7 @@ static bool userIsCmndTabbing = false;
     
     CGPoint fingerTip = CGPointMake(xpos,ypos);
     
-    [self clickAtPosition:fingerTip withEvent:kCGEventLeftMouseDragged andButton:kCGMouseButtonLeft];
+    [self postEvent: kCGEventLeftMouseDragged atPosition:fingerTip withButton:kCGMouseButtonLeft];
     
     if(DEBUG) {NSLog(@"\nLeapFinger location:\t%f , %f\n\t\t\tMouseXY:\t%f , %f\n\tFinal Position: \t%f, %f\n\t\t\tDeltaXY:\t%f, %f\n\t\t\tVelocity:\t%f\n\n",
                      finger.tipPosition.x, finger.tipPosition.y,
@@ -853,7 +828,7 @@ static bool userIsCmndTabbing = false;
             [self cmndTabWithFinger:[fingers leftmost] controller:aController];
         }
         else {
-           if(scaleProbability > translationProbability ) {
+           /*if(scaleProbability > translationProbability ) {
                 if( scaleProbability > rotationProbability) {
                     if(testGestures) [self testGestureRecognition: 4];
                     [self brightnessControl:hand andFingers:fingers];
@@ -864,7 +839,7 @@ static bool userIsCmndTabbing = false;
                 }
             }
             else {
-                if( translationProbability > rotationProbability) {
+                if( translationProbability > rotationProbability) {*/
                     NSArray *gestures = [frame gestures:nil];
                     LeapSwipeGesture *swipeGesture = nil;
                     for (int i = 0; i < [gestures count]; i++) {
@@ -883,12 +858,12 @@ static bool userIsCmndTabbing = false;
                     [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
                     return;
 
-                }
+                /*}
                 else {
                     if(testGestures) [self testGestureRecognition:5];
                     //[self volumeControl:hand andController:aController];
                 }
-            }
+            }*/
             
             /*CGFloat maxProb = MAX(scaleProbability, MAX(translationProbability, rotationProbability));
              if(fequal(maxProb, scaleProbability)) {
