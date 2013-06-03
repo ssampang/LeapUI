@@ -150,6 +150,7 @@ static float startSymbolV=1;
 
 /* APP PANEL VARS */
 static BOOL userIsOpeningApp = NO;
+static BOOL appPanelLaunched = NO;
 static const int APP_PANEL = 0; // 0 for Launchpad; 1 for Finder;
 
 /* COMMAND+TAB VARS */
@@ -397,6 +398,16 @@ static BOOL userIsCmndTabbing = NO;
                 [self pressKey:kVK_Command down:NO];
                 [self pressKey:kVK_Tab down:NO];
             }
+            
+            if(userIsOpeningApp) {
+                userIsOpeningApp = NO;
+                appPanelLaunched = NO;
+                
+                [self pressKey:kVK_Shift down:NO];
+                [self pressKey:kVK_Command down:NO];
+                [self pressKey:kVK_ANSI_A down:NO];
+            }
+            
             NSPoint mouseLoc = [NSEvent mouseLocation];
             CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
             [self postEvent: kCGEventLeftMouseDown atPosition:clickPosition withButton:kCGMouseButtonLeft];
@@ -519,6 +530,8 @@ static BOOL userIsCmndTabbing = NO;
 }
 
 - (void) openAppPanel: (LeapFinger *) finger controller: (LeapController *) aController {
+    if(appPanelLaunched) return;
+    
     [self pressKey:kVK_Shift down:NO];
     [self pressKey:kVK_Command down:NO];
     [self pressKey:kVK_ANSI_A down:NO];
@@ -535,6 +548,7 @@ static BOOL userIsCmndTabbing = NO;
         [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
         [self pressKey:kVK_ANSI_A down:YES];
     }
+    appPanelLaunched = YES;
 }
 
 - (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController {
