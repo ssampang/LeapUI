@@ -1080,7 +1080,7 @@ static BOOL userIsCmndTabbing = NO;
                 
             case lVolumeControl:
                 /*if(fingerCount >= 1) {
-                    [self volumeControl:fingers andController:aController];
+                    [self volumeControl:fingers withController:aController];
                     return;
                 }*/
                 break;
