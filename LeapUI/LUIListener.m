@@ -15,7 +15,7 @@
 #import <CoreAudio/CoreAudio.h>
 
 #define DEBUG 0
-#define testGestures 0
+#define testGestures 1
 
 #define fequal(a,b) (fabs((a) - (b)) < FLT_EPSILON)
 
@@ -62,7 +62,8 @@ typedef enum {
     lVolumeControl,
     lBrightnessControl,
     lLaunchPad,
-    lCmndTab = 8
+    lAppPanel,
+    lCmndTab = 9
 } lCurrentActionEnum;
 
 static int currentAction = lNone;
@@ -146,6 +147,10 @@ const CFStringRef kDisplayBrightness = CFSTR(kIODisplayBrightnessKey);
 /* VOLUME CONTROL VARS */
 static float prevRotationAngle=0;
 static float startSymbolV=1;
+
+/* APP PANEL VARS */
+static BOOL userIsOpeningApp = NO;
+static const int APP_PANEL = 0; // 0 for Launchpad; 1 for Finder;
 
 /* COMMAND+TAB VARS */
 static BOOL cmndTabMenuIsVisible = NO;
@@ -273,7 +278,7 @@ static BOOL userIsCmndTabbing = NO;
     }
 
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
-        if(statusItemColor != lBaseGreen + numOfFingers){
+        if(statusItemColor != lBaseGreen + numOfFingers){	
             statusItemColor = lBaseGreen + numOfFingers;
             
             switch (statusItemColor) {
@@ -511,6 +516,25 @@ static BOOL userIsCmndTabbing = NO;
     }
     
     //else [self moveCursorWithFinger:finger controller:aController];
+}
+
+- (void) openAppPanel: (LeapFinger *) finger controller: (LeapController *) aController {
+    [self pressKey:kVK_Shift down:NO];
+    [self pressKey:kVK_Command down:NO];
+    [self pressKey:kVK_ANSI_A down:NO];
+    
+    if (APP_PANEL == 0){
+        [[NSWorkspace sharedWorkspace] launchApplication:@"Launchpad"];
+    }
+    else if (APP_PANEL == 1){
+        [[NSWorkspace sharedWorkspace] launchApplication:@"Finder"];
+        [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+        [self pressKey:kVK_Shift down:YES];
+        [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+        [self pressKey:kVK_Command down:YES];
+        [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
+        [self pressKey:kVK_ANSI_A down:YES];
+    }
 }
 
 - (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController {
@@ -876,6 +900,11 @@ static BOOL userIsCmndTabbing = NO;
             if(testGestures) [self testGestureRecognition: 7];
             [self cmndTabWithFinger:[fingers leftmost] controller:aController];
         }
+        else if (userIsOpeningApp){
+            currentAction = lAppPanel;
+            if(testGestures) [self testGestureRecognition: 8];
+            [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
+        }
         else {
             /*if(scaleProbability > translationProbability ) {
              if( scaleProbability > rotationProbability) {
@@ -901,12 +930,21 @@ static BOOL userIsCmndTabbing = NO;
             if(swipeGesture == nil) return;
             
             LeapVector *swipeDirection = swipeGesture.direction;
-            if(swipeDirection.x < swipeDirection.y) return;
-            userIsCmndTabbing = YES;
-            currentAction = lCmndTab;
-            if(testGestures) [self testGestureRecognition: 7];
-            [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
-            return;
+            NSLog(@"X-dir: %f; Y-dir: %f", swipeDirection.x, swipeDirection.y);
+            if(swipeDirection.x < swipeDirection.y){
+                userIsOpeningApp = YES;
+                currentAction = lAppPanel;
+                if(testGestures) [self testGestureRecognition: 8];
+                [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
+                return;
+            }
+            else{
+                userIsCmndTabbing = YES;
+                currentAction = lCmndTab;
+                if(testGestures) [self testGestureRecognition: 7];
+                [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
+                return;
+            }
             
             /*}
              else {
@@ -997,10 +1035,10 @@ static BOOL userIsCmndTabbing = NO;
     if([fingers count]) {
         switch (currentAction) {
             case lMovingCursor:
-                if(fingerCount == 1) {
+                /*if(fingerCount == 1) {
                     [self moveCursorWithFinger:[fingers leftmost] controller:aController];
                     return;
-                }
+                }*/
                 break;
             case lScrolling:
                 if(fingerCount == 2) {
@@ -1010,17 +1048,17 @@ static BOOL userIsCmndTabbing = NO;
                 break;
                 
             case lPinchZooming:
-                if(fingerCount == 2) {
+                /*if(fingerCount == 2) {
                     [self pinchAndZoom:fingers withController:aController];
                     return;
-                }
+                }*/
                 break;
                 
             case lDraggingCursor:
-                if((fingerCount >=1 && leftClickDown) || fingerCount == 3) {
+                /*if((fingerCount >=1 && leftClickDown) || fingerCount == 3) {
                     [self dragCursorWithFinger:[fingers leftmost] controller:aController];
                     return;
-                }
+                }*/
                 break;
                 
             case lVolumeControl:
@@ -1038,12 +1076,19 @@ static BOOL userIsCmndTabbing = NO;
                 break;
                 
             case lCmndTab:
-                if(fingerCount == 5) {
+                /*if(fingerCount == 5) {
                     [self cmndTabWithFinger:[fingers leftmost] controller:aController];
+                    userIsCmndTabbing = NO;
                     return;
-                }
+                }*/
                 break;
-            
+            case lAppPanel:
+                /*if(fingerCount == 5){
+                    [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
+                    userIsOpeningApp = NO;
+                    return;
+                }*/
+                break;
             case lNone:
                 break;
             
@@ -1101,7 +1146,9 @@ static int currentGesture = 0;
             case 7:
                 NSLog(@"Cmnd Tabbing");
                 break;
-                
+            case 8:
+                NSLog(@"Opening App Menu");
+                break;
             default:
                 break;
         }
