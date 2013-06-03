@@ -969,7 +969,7 @@ static BOOL userIsCmndTabbing = NO;
     NSUInteger fingerCount = [fingers count];
     
     //TO JIN: You can comment this line out and see if it works better.
-    fingers = [self filterRogueFingers:fingers];
+    //fingers = [self filterRogueFingers:fingers];
     
     [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
     
