@@ -948,24 +948,24 @@ static BOOL userIsCmndTabbing = NO;
                 break;
                 
             case lDraggingCursor:
-                if(fingerCount == 3) {
+                if((fingerCount >=1 && leftClickDown) || fingerCount == 3) {
                     [self dragCursorWithFinger:[fingers leftmost] controller:aController];
                     return;
                 }
                 break;
                 
             case lVolumeControl:
-                if(fingerCount >=3) {
+                /*if(fingerCount >= 1) {
                     [self volumeControl:hand andController:aController];
                     return;
-                }
+                }*/
                 break;
                 
             case lBrightnessControl:
-                if(fingerCount >= 3) {
+                /*if(fingerCount >= 3) {
                     [self brightnessControl:hand andFingers:fingers];
                     return;
-                }
+                }*/
                 break;
                 
             case lCmndTab:
