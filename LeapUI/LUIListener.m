@@ -908,6 +908,19 @@ static BOOL userIsCmndTabbing = NO;
             [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
         }
         else {
+        	LeapFrame *previousFrame = [aController frame:1];
+            LeapHand *prevHand=[[previousFrame hands] objectAtIndex:0];
+            float currentRadius=[hand sphereRadius];
+            float prevRadius=[prevHand sphereRadius];
+            float change=fabsf(currentRadius-prevRadius);
+            NSLog(@"change is %f",change);
+            if(change>=0.5)
+            {
+                currentAction = lBrightnessControl;
+                if(testGestures) [self testGestureRecognition: 4];
+                [self brightnessControl:hand andFingers:fingers];
+                return;
+            }
             /*if(scaleProbability > translationProbability ) {
              if( scaleProbability > rotationProbability) {
              if(testGestures) [self testGestureRecognition: 4];
@@ -928,19 +941,7 @@ static BOOL userIsCmndTabbing = NO;
                     break;
                 }
                 
-                LeapFrame *previousFrame = [aController frame:1];
-            LeapHand *prevHand=[[previousFrame hands] objectAtIndex:0];
-            float currentRadius=[hand sphereRadius];
-            float prevRadius=[prevHand sphereRadius];
-            float change=fabsf(currentRadius-prevRadius);
-            NSLog(@"change is %f",change);
-            if(change>=0.5)
-            {
-                currentAction = lBrightnessControl;
-                if(testGestures) [self testGestureRecognition: 4];
-                [self brightnessControl:hand andFingers:fingers];
-                return;
-            }
+                
 
             }
             
