@@ -30,11 +30,30 @@
 #define LEAP_FIELD_OF_VIEW_WIDTH 600
 #define LEAP_FIELD_OF_VIEW_HEIGHT 400
 
+/*The minimum distance (on the x-axis) that at least one finger has
+  to be from the Leap for any fingers to get recognized. This helps 
+  us to, for example, avoid recognizing 3 fingers and acting upon 
+  that information when the user is simply in the process of entering
+  5 fingers into the space */
+#define LEAP_MIN_FINGER_X_DISTANCE 300
+
 @implementation LUIListener
 @synthesize window = _window;
 
 /* GENERAL VARS */
-static bool clickingFinger;
+typedef enum {
+    lNone = 0,
+    lMovingCursor,
+    lScrolling,
+    lPinchZooming,
+    lDraggingCursor,
+    lVolumeControl,
+    lBrightnessControl,
+    lLaunchPad,
+    lCmndTab = 8
+} lCurrentActionEnum;
+
+static int currentAction = lNone;
 
 /* NAVIGATION VARS */
 static CGFloat fieldOfViewScale;
@@ -43,36 +62,36 @@ static CGFloat mainScreenHeight;
 static BOOL leftClickClicked = NO;
 
 /* STATUS ITEM VARS */
-static int statusItemColor = 0; /* 1 = red; 2 = yellow; 3 = green;*/
+static int statusItemColor = 18;
 
 typedef enum {
-    LgreenQ = 0,
-    Lgreen1 = 1,
-    Lgreen2 = 2,
-    Lgreen3 = 3,
-    Lgreen4 = 4,
-    Lgreen5 = 5,
+    lGreenQ = 0,
+    lGreen1,
+    lGreen2,
+    lGreen3,
+    lGreen4,
+    lGreen5,
     
-    LyellowQ = 6,
-    Lyellow1 = 7,
-    Lyellow2 = 8,
-    Lyellow3 = 9,
-    Lyellow4 = 10,
-    Lyellow5 = 11,
+    lYellowQ = 6,
+    lYellow1,
+    lYellow2,
+    lYellow3,
+    lYellow4,
+    lYellow5,
     
-    LredQ = 12,
-    Lred1 = 13,
-    Lred2 = 14,
-    Lred3 = 15,
-    Lred4 = 16,
-    Lred5 = 17,
-    Lred0 = 18
-} imageNumber;
+    lRedQ = 12,
+    lRed1,
+    lRed2,
+    lRed3,
+    lRed4,
+    lRed5,
+    lRed0 = 18
+} lImageNumberEnum;
 
 /* Status Item constants */
-static const int LbaseGreen = 0;
-static const int LbaseYellow = 6;
-static const int LbaseRed = 12;
+static const int lBaseGreen = 0;
+static const int lBaseYellow = 6;
+static const int lBaseRed = 12;
 
 static NSImage *redQ;
 static NSImage *red0;
@@ -117,8 +136,8 @@ static float prevRotationAngle=0;
 static float startSymbolV=1;
 
 /* COMMAND+TAB VARS */
-static bool cmndTabMenuIsVisible = false;
-static bool userIsCmndTabbing = false;
+static BOOL cmndTabMenuIsVisible = NO;
+static BOOL userIsCmndTabbing = NO;
 
 - (void) run{
     LeapController *controller = [[LeapController alloc] init];
@@ -191,35 +210,27 @@ static bool userIsCmndTabbing = false;
     [self setStatusBarImage:red0];
 }
 
-- (void)onInit:(NSNotification *)notification
-{
+- (void) onInit:(NSNotification *)notification{
     NSLog(@"Initialized");
 }
 
-- (void)onConnect:(NSNotification *)notification
-{
+- (void) onConnect:(NSNotification *)notification{
     NSLog(@"Connected");
     LeapController *aController = (LeapController *)[notification object];
-    //    [aController enableGesture:LEAP_GESTURE_TYPE_CIRCLE enable:YES];
-    //    [aController enableGesture:LEAP_GESTURE_TYPE_KEY_TAP enable:YES];
-    //    [aController enableGesture:LEAP_GESTURE_TYPE_SCREEN_TAP enable:YES];
     [aController enableGesture:LEAP_GESTURE_TYPE_SWIPE enable:YES];
     
     NSRect mainScreenFrame = [[NSScreen mainScreen] frame];
     mainScreenWidth = mainScreenFrame.size.width;
     mainScreenHeight = mainScreenFrame.size.height;
     
-    
     fieldOfViewScale = mainScreenWidth/LEAP_FIELD_OF_VIEW_WIDTH;
 }
 
-- (void)onDisconnect:(NSNotification *)notification
-{
+- (void) onDisconnect:(NSNotification *)notification{
     NSLog(@"Disconnected");
 }
 
-- (void)onExit:(NSNotification *)notification
-{
+- (void) onExit:(NSNotification *)notification{
     NSLog(@"Exited");
 }
 
@@ -234,42 +245,47 @@ static bool userIsCmndTabbing = false;
     CFRelease(click);
 }
 
+- (void) setStatusBarImage: (NSImage *) img {
+    [statusItem setImage:img];
+    [statusItem setHighlightMode:YES];
+}
+
 - (void) setStatusItemColor: (LeapFinger *) finger WithFingers: (int) numOfFingers{
     
     if(!finger){
-        if(statusItemColor != Lred0){
+        if(statusItemColor != lRed0){
             [self setStatusBarImage:red0];
-            statusItemColor = Lred0;
+            statusItemColor = lRed0;
         }
         return;
     }
 
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
-        if(statusItemColor != LbaseGreen + numOfFingers){
-            statusItemColor = LbaseGreen + numOfFingers;
+        if(statusItemColor != lBaseGreen + numOfFingers){
+            statusItemColor = lBaseGreen + numOfFingers;
             
             switch (statusItemColor) {
-                case LgreenQ:
+                case lGreenQ:
                     [self setStatusBarImage: greenQ];
                     break;
                 
-                case Lgreen1:
+                case lGreen1:
                     [self setStatusBarImage:green1];
                     break;
                     
-                case Lgreen2:
+                case lGreen2:
                     [self setStatusBarImage:green2];
                     break;
                     
-                case Lgreen3:
+                case lGreen3:
                     [self setStatusBarImage:green3];
                     break;
                 
-                case Lgreen4:
+                case lGreen4:
                     [self setStatusBarImage:green4];
                     break;
                 
-                case Lgreen5:
+                case lGreen5:
                     [self setStatusBarImage:green5];
                     break;
                     
@@ -279,31 +295,31 @@ static bool userIsCmndTabbing = false;
         }
     }
     else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
-        if(statusItemColor != LbaseYellow + numOfFingers){
-            statusItemColor = LbaseYellow + numOfFingers;
+        if(statusItemColor != lBaseYellow + numOfFingers){
+            statusItemColor = lBaseYellow + numOfFingers;
             
             switch (statusItemColor) {
-                case LyellowQ:
+                case lYellowQ:
                     [self setStatusBarImage: yellowQ];
                     break;
                     
-                case Lyellow1:
+                case lYellow1:
                     [self setStatusBarImage:yellow1];
                     break;
                     
-                case Lyellow2:
+                case lYellow2:
                     [self setStatusBarImage:yellow2];
                     break;
                     
-                case Lyellow3:
+                case lYellow3:
                     [self setStatusBarImage:yellow3];
                     break;
                     
-                case Lyellow4:
+                case lYellow4:
                     [self setStatusBarImage:yellow4];
                     break;
                     
-                case Lyellow5:
+                case lYellow5:
                     [self setStatusBarImage:yellow5];
                     break;
                     
@@ -313,31 +329,31 @@ static bool userIsCmndTabbing = false;
         }
     }
     else {
-        if(statusItemColor != LbaseRed + numOfFingers){
-            statusItemColor = LbaseRed + numOfFingers;
+        if(statusItemColor != lBaseRed + numOfFingers){
+            statusItemColor = lBaseRed + numOfFingers;
             
             switch (statusItemColor) {
-                case LredQ:
+                case lRedQ:
                     [self setStatusBarImage: redQ];
                     break;
                     
-                case Lred1:
+                case lRed1:
                     [self setStatusBarImage:red1];
                     break;
                     
-                case Lred2:
+                case lRed2:
                     [self setStatusBarImage:red2];
                     break;
                     
-                case Lred3:
+                case lRed3:
                     [self setStatusBarImage:red3];
                     break;
                     
-                case Lred4:
+                case lRed4:
                     [self setStatusBarImage:red4];
                     break;
                     
-                case Lred5:
+                case lRed5:
                     [self setStatusBarImage:red5];
                     break;
                     
@@ -356,8 +372,8 @@ static bool userIsCmndTabbing = false;
             if(userIsCmndTabbing == YES) {
                 userIsCmndTabbing = NO;
                 cmndTabMenuIsVisible = NO;
-                [self pressKey:kVK_Command down:false];
-                [self pressKey:kVK_Tab down:false];
+                [self pressKey:kVK_Command down:NO];
+                [self pressKey:kVK_Tab down:NO];
             }
         }
         return;
@@ -469,24 +485,23 @@ static bool userIsCmndTabbing = false;
 - (void) cmndTabWithFinger: (LeapFinger *) finger controller: (LeapController *) aController {
     if(!cmndTabMenuIsVisible) {
         //[self setStatusItemColor:finger WithFingers:5];
-        [self pressKey:kVK_Command down:false];
-        [self pressKey:kVK_Tab down:false];
+        [self pressKey:kVK_Command down:NO];
+        [self pressKey:kVK_Tab down:NO];
         
-        [self pressKey:kVK_Command down:true];
+        [self pressKey:kVK_Command down:YES];
         [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
-        [self pressKey:kVK_Tab down:true];
+        [self pressKey:kVK_Tab down:YES];
         
-        //[self pressKey:kVK_Command down:false];
-        //[self pressKey:kVK_Tab down:false];
+        //[self pressKey:kVK_Command down:NO];
+        //[self pressKey:kVK_Tab down:NO];
         
-        cmndTabMenuIsVisible = true;
+        cmndTabMenuIsVisible = YES;
     }
     
     //else [self moveCursorWithFinger:finger controller:aController];
 }
 
-- (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController
-{
+- (void) scrollWithFingers: (NSMutableArray *) fingers  andController:(LeapController *) aController {
     /**** Two Finger Scrolling ****/
     /* Still have to:
      1. put in checks to differentiate pinch to zoom as two finger scrolling when tipPosition < POSITION_DIFF_THRESHOLD (check x posiitons)
@@ -504,7 +519,6 @@ static bool userIsCmndTabbing = false;
         //NSLog(@"Distance scrolled: %f: ", [frame translation:comparisonFrame].magnitude);
        
         if([currentFrame translationProbability: previousFrame] > 0.4) {
-            //[self setStatusItemColor:[fingers leftmost] WithFingers:2];
             if (currentTipPosition.z < MIN_CLICK_THRESHOLD  ){
                 CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
                                                                       previousTipPosition.y - currentTipPosition.y);
@@ -550,9 +564,8 @@ static bool userIsCmndTabbing = false;
                                                     z: scrollingVelocity.z];
 }
 
-- (void) pinchAndZoom :(NSMutableArray *)fingers withController: (LeapController *) aController
-{
-    Boolean symbol=false;
+- (void) pinchAndZoom :(NSMutableArray *)fingers withController: (LeapController *) aController {
+    BOOL symbol=NO;
     
     if( [[aController frame:0] scaleProbability: [aController frame:1]] < 0.4) return;
     if ( [fingers count] == 2 ){
@@ -571,35 +584,35 @@ static bool userIsCmndTabbing = false;
         if( distance - prevTipdistance > disThreshold&&startSymbol!=1)
         {
             NSLog(@"Zoom Gesture dectected");
-            [self pressKey:kVK_Command down:true];
+            [self pressKey:kVK_Command down:YES];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
-            [self pressKey:kVK_ANSI_Equal down:true];
-            
-            [self pressKey:kVK_Command down:false];
-            [self pressKey:kVK_ANSI_Equal down:false];
+            [self pressKey:kVK_ANSI_Equal down:YES];
+            [NSThread sleepForTimeInterval: 0.1];
+            [self pressKey:kVK_Command down:NO];
+            [self pressKey:kVK_ANSI_Equal down:NO];
         }
         else if ( prevTipdistance - distance > disThreshold&&startSymbol!=1){
             NSLog(@"Pinch Gesture dectected");
-            [self pressKey:kVK_Command down:true];
+            [self pressKey:kVK_Command down:YES];
             [NSThread sleepForTimeInterval: 0.1]; // 100 mS delay
-            [self pressKey:kVK_ANSI_Minus down:true];
-            
-            [self pressKey:kVK_Command down:false];
-            [self pressKey:kVK_ANSI_Minus down:false];
+            [self pressKey:kVK_ANSI_Minus down:YES];
+            [NSThread sleepForTimeInterval: 0.1];
+            [self pressKey:kVK_Command down:NO];
+            [self pressKey:kVK_ANSI_Minus down:NO];
         }
         else if(startSymbol!=1)
         {
-            symbol=true;
+            symbol=YES;
         }
         if(startSymbol==1)
             startSymbol--;
-        if(symbol==true) // when you put 2 fingers in the field but do not recognize as zoom or pinch
+        if(symbol==YES) // when you put 2 fingers in the field but do not recognize as zoom or pinch
             startSymbol=1;
         prevTipdistance = distance;
     }
 }
 
-- (float)getVolume {
+- (float) getVolume {
 	float			b_vol;
 	OSStatus		err;
 	AudioDeviceID		device;
@@ -637,9 +650,8 @@ static bool userIsCmndTabbing = false;
 	return  b_vol;
 }
 
-
 // setting system volume
-- (void)setVolume:(float)involume {
+- (void) setVolume:(float)involume {
 	OSStatus		err;
 	AudioDeviceID		device;
 	UInt32			size;
@@ -658,7 +670,7 @@ static bool userIsCmndTabbing = false;
 	// try set master-channel (0) volume
 	size = sizeof canset;
 	err = AudioDeviceGetPropertyInfo(device, 0, false, kAudioDevicePropertyVolumeScalar, &size, &canset);
-	if(err==noErr && canset==true) {
+	if(err==noErr && canset==YES) {
 		size = sizeof involume;
 		err = AudioDeviceSetProperty(device, NULL, 0, false, kAudioDevicePropertyVolumeScalar, size, &involume);
 		return;
@@ -681,8 +693,7 @@ static bool userIsCmndTabbing = false;
 	if(noErr!=err) NSLog(@"error setting volume of channel %d",channels[1]);
 }
 
--(void)brightnessControl:(LeapHand *)hands andFingers:(NSMutableArray *) fingers;
-{
+- (void) brightnessControl:(LeapHand *)hands andFingers:(NSMutableArray *) fingers {
     if([fingers count]==5){
       
     float radius= [hands sphereRadius];
@@ -702,11 +713,11 @@ static bool userIsCmndTabbing = false;
     prevRadius=radius;
     }
 }
--(void)volumeControl:(LeapHand *)hands andController:(LeapController *) aController
-{
+
+- (void) volumeControl:(LeapHand *)hands andController:(LeapController *) aController {
     LeapFrame *prevFrame = [aController frame: 1];
     
-    Boolean symbol=false;
+    BOOL symbol=NO;
     float rotationAngle=0;
     const float rotationThreshold=0.05;
     if(startSymbolV!=1){
@@ -723,46 +734,46 @@ static bool userIsCmndTabbing = false;
            NSLog(@"Decrease the Volume");
        }
         else{
-    symbol=true;
+    symbol=YES;
         }
 
         }
     if(startSymbolV==1)
         startSymbolV--;
-    if(symbol==true)
+    if(symbol==YES)
         startSymbolV=1;
     prevRotationAngle=rotationAngle;
     NSLog(@"rotationAngle= %f",rotationAngle);
 
 }
 
-- (void)onFrame:(NSNotification *)notification;
-{
-    LeapController *aController = (LeapController *)[notification object];
+- (NSMutableArray *) filterFingers: (NSMutableArray *) fingers {    
     
-    // Get the most recent frame and report some basic information
-    LeapFrame *frame = [aController frame:0];
-     LeapHand *hand;
-    if([[frame hands]count]!=0)
-    {
-        hand=[[frame hands] objectAtIndex:0];
-    }
-
-    //if the finger is more than MIN_VIEW_THRESHOLD millimeters away from the front of the Leap, then ignore it
-    NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
+    /* First, if no finger is within the box designated by LEAP_FIELD_OF_VIEW_WIDTH x LEAP_FIELD_OF_VIEW_HEIGHT x LEAP_MIN_VIEW_THRESHOLD
+     * then ignore all fingers */
+    
+    BOOL allOutOfRange = YES;
     for(int i = 0; i < [fingers count]; i++) {
-        if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z > MIN_VIEW_THRESHOLD){
+        LeapVector *fingerTipPostion = ( (LeapPointable *)[fingers objectAtIndex:i]).tipPosition;
+        if(fingerTipPostion.z <= MIN_VIEW_THRESHOLD &&
+           fabsf(fingerTipPostion.x) <= (LEAP_MIN_FINGER_X_DISTANCE/2) &&
+           fingerTipPostion.y <= LEAP_FIELD_OF_VIEW_HEIGHT){
             //NSLog(@"Removing finger with distance: %f", [(LeapFinger*)[fingers objectAtIndex:i] tipPosition].z);
-            [fingers removeObjectAtIndex:i];
-            i--;
-        }
-        else if(((LeapFinger*)[fingers objectAtIndex:i]).tipPosition.z < MIN_CLICK_THRESHOLD){
-            clickingFinger = true;
+            allOutOfRange = NO;
         }
     }
     
-    //Point and Click will be 1 finger; Pinch to zoom and Two finger scroll will be 2 fingers;
+    if(allOutOfRange) return [[NSMutableArray alloc] initWithObjects: nil];
     
+    //if all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z is pointed towards the user and is very fast (this will mean that the user is withdrawing the finger from the field
+    
+    /* Split fingers into two groups. Those which are pointed in a direction that's really */
+    
+    return fingers;
+}
+
+- (void) classifyActionWithFingers: (NSMutableArray *) fingers Hand: (LeapHand *) hand Frame: (LeapFrame *) frame andController: (LeapController *) aController {
+    fingers = [self filterFingers:fingers];
     NSUInteger fingerCount = [fingers count];
     
     [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
@@ -778,122 +789,118 @@ static bool userIsCmndTabbing = false;
     
     if(fingerCount==0)
     {
-        startSymbol=1;
-        startSymbolV=1;
-        startSymbolR=1;
+        
     }
     else if(fingerCount == 1) {
+        currentAction = lMovingCursor;
         if(testGestures) [self testGestureRecognition:1];
         [self moveCursorWithFinger: [fingers leftmost] controller: aController];
     }
     else if(fingerCount == 2) {
         if(scaleProbability > translationProbability) {
+            currentAction = lPinchZooming;
             if(testGestures) [self testGestureRecognition:3];
             [self pinchAndZoom:fingers withController: aController];
         }
         else {
+            currentAction = lScrolling;
             if(testGestures) [self testGestureRecognition:2];
             [self scrollWithFingers: fingers andController: aController];
         }
     }
-    //ALERT: Why was this if( fingerCount >= 3) ??
     else if (fingerCount==3)
     {
         if(rotationProbability > translationProbability) {
+            currentAction = lVolumeControl;
             if(testGestures) [self testGestureRecognition:5];
             //[self volumeControl:hand andController:aController];
         }
         else {
             if(testGestures) [self testGestureRecognition:6];
+            currentAction = lDraggingCursor;
             [self dragCursorWithFinger:[fingers leftmost] controller:aController];
         }
     }
     else if (fingerCount==4)
     {
+        currentAction = lVolumeControl;
         if(testGestures) [self testGestureRecognition:5];
         //[self volumeControl:hand andController:aController];
     }
     else if(fingerCount == 5) {
-        //Sid: This can be changed later
-       /* CGEventRef move = CGEventCreateMouseEvent( NULL, kCGEventMouseMoved,
-                                                  CGPointMake(mainScreenWidth/2, mainScreenHeight/2),
-                                                  kCGMouseButtonLeft // ignored
-                                                  );
-        CGEventSetType(move, kCGEventMouseMoved);
-        CGEventPost(kCGHIDEventTap, move);
-        CFRelease(move);*/
-        
         if(userIsCmndTabbing) {
+            currentAction = lCmndTab;
             if(testGestures) [self testGestureRecognition: 7];
             [self cmndTabWithFinger:[fingers leftmost] controller:aController];
         }
         else {
-           /*if(scaleProbability > translationProbability ) {
-                if( scaleProbability > rotationProbability) {
-                    if(testGestures) [self testGestureRecognition: 4];
-                    [self brightnessControl:hand andFingers:fingers];
-                }
-                else {
-                    if(testGestures) [self testGestureRecognition:5];
-                    //[self volumeControl:hand andController:aController];
+            /*if(scaleProbability > translationProbability ) {
+             if( scaleProbability > rotationProbability) {
+             if(testGestures) [self testGestureRecognition: 4];
+             [self brightnessControl:hand andFingers:fingers];
+             }
+             else {
+             if(testGestures) [self testGestureRecognition:5];
+             //[self volumeControl:hand andController:aController];
+             }
+             }
+             else {
+             if( translationProbability > rotationProbability) {*/
+            NSArray *gestures = [frame gestures:nil];
+            LeapSwipeGesture *swipeGesture = nil;
+            for (int i = 0; i < [gestures count]; i++) {
+                if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
+                    swipeGesture = [gestures objectAtIndex:i];
+                    break;
                 }
             }
-            else {
-                if( translationProbability > rotationProbability) {*/
-                    NSArray *gestures = [frame gestures:nil];
-                    LeapSwipeGesture *swipeGesture = nil;
-                    for (int i = 0; i < [gestures count]; i++) {
-                        if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
-                            swipeGesture = [gestures objectAtIndex:i];
-                            break;
-                        }
-                    }
-                    
-                    if(swipeGesture == nil) return;
-                    
-                    LeapVector *swipeDirection = swipeGesture.direction;
-                    if(swipeDirection.x > swipeDirection.y) return;
-                    userIsCmndTabbing = true;
-                    if(testGestures) [self testGestureRecognition: 7];
-                    [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
-                    return;
-
-                /*}
-                else {
-                    if(testGestures) [self testGestureRecognition:5];
-                    //[self volumeControl:hand andController:aController];
-                }
-            }*/
+            
+            if(swipeGesture == nil) return;
+            
+            LeapVector *swipeDirection = swipeGesture.direction;
+            if(swipeDirection.x < swipeDirection.y) return;
+            userIsCmndTabbing = YES;
+            currentAction = lCmndTab;
+            if(testGestures) [self testGestureRecognition: 7];
+            [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
+            return;
+            
+            /*}
+             else {
+             if(testGestures) [self testGestureRecognition:5];
+             //[self volumeControl:hand andController:aController];
+             }
+             }*/
             
             /*CGFloat maxProb = MAX(scaleProbability, MAX(translationProbability, rotationProbability));
              if(fequal(maxProb, scaleProbability)) {
              if(testGestures) [self testGestureRecognition: 4];
              //[self brightnessControl:hand andFingers:fingers];
-            }
-            else if(fequal(maxProb, translationProbability)) {
-                NSArray *gestures = [frame gestures:nil];
-                LeapSwipeGesture *swipeGesture = nil;
-                for (int i = 0; i < [gestures count]; i++) {                
-                    if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
-                        swipeGesture = [gestures objectAtIndex:i];
-                        break;
-                    }
-                }
+             }
+             else if(fequal(maxProb, translationProbability)) {
+             NSArray *gestures = [frame gestures:nil];
+             LeapSwipeGesture *swipeGesture = nil;
+             for (int i = 0; i < [gestures count]; i++) {
+             if([(LeapGesture *)[gestures objectAtIndex:i] type] == LEAP_GESTURE_TYPE_SWIPE) {
+             swipeGesture = [gestures objectAtIndex:i];
+             break;
+             }
+             }
+             
+             if(swipeGesture == nil) return;
+             
+             LeapVector *swipeDirection = swipeGesture.direction;
+             if(swipeDirection.x > swipeDirection.y) return;
+             userIsCmndTabbing = YES;
+             if(testGestures) [self testGestureRecognition: 7];
+             [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
+             return;
+             }
+             else {
+             if(testGestures) [self testGestureRecognition:5];
+             [self volumeControl:hand andController:aController];
+             }*/
             
-                if(swipeGesture == nil) return;
-                
-                LeapVector *swipeDirection = swipeGesture.direction;
-                if(swipeDirection.x > swipeDirection.y) return;
-                userIsCmndTabbing = true;
-                if(testGestures) [self testGestureRecognition: 7];
-                [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
-                return;
-            }
-            else {
-                if(testGestures) [self testGestureRecognition:5];
-                [self volumeControl:hand andController:aController];
-            }*/
-
         }
     }
     else {
@@ -902,15 +909,95 @@ static bool userIsCmndTabbing = false;
 
 }
 
+- (void)onFrame:(NSNotification *)notification;
+{
+    LeapController *aController = (LeapController *)[notification object];
+    
+    // Get the most recent frame and report some basic information
+    LeapFrame *frame = [aController frame:0];
+    LeapHand *hand;
+    
+    if([[frame hands]count]!=0)
+    {
+        hand=[[frame hands] objectAtIndex:0];
+    }
+    
+    NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
+    NSUInteger fingerCount = [fingers count];
+    
+    if([fingers count]) {
+        switch (currentAction) {
+            case lMovingCursor:
+                if(fingerCount == 1) {
+                    [self moveCursorWithFinger:[fingers leftmost] controller:aController];
+                    return;
+                }
+                break;
+            case lScrolling:
+                if(fingerCount == 2) {
+                    [self scrollWithFingers:fingers andController:aController];
+                    return;
+                }
+                break;
+                
+            case lPinchZooming:
+                if(fingerCount == 2) {
+                    [self pinchAndZoom:fingers withController:aController];
+                    return;
+                }
+                break;
+                
+            case lDraggingCursor:
+                if(fingerCount == 3) {
+                    [self dragCursorWithFinger:[fingers leftmost] controller:aController];
+                    return;
+                }
+                break;
+                
+            case lVolumeControl:
+                if(fingerCount >=3) {
+                    [self volumeControl:hand andController:aController];
+                    return;
+                }
+                break;
+                
+            case lBrightnessControl:
+                if(fingerCount >= 3) {
+                    [self brightnessControl:hand andFingers:fingers];
+                    return;
+                }
+                break;
+                
+            case lCmndTab:
+                if(fingerCount == 5) {
+                    [self cmndTabWithFinger:[fingers leftmost] controller:aController];
+                    return;
+                }
+                break;
+            
+            case lNone:
+                break;
+            
+            default:
+                NSLog(@"CurrentAction: %d\n", currentAction);
+                break;
+        }
+    }
+    else {
+        currentAction = lNone;
+        startSymbol=1;
+        startSymbolV=1;
+        startSymbolR=1;
+        return;
+    }
+    
+    [self classifyActionWithFingers: fingers Hand: hand Frame: frame andController: aController];
+}
+
 -(void) pressKey:(int)key down:(BOOL)pressDown{
     CGEventRef downEvent = CGEventCreateKeyboardEvent(NULL, key, pressDown);
     CGEventPost(kCGHIDEventTap, downEvent);
     CFRelease(downEvent);
-}
-
-- (void) setStatusBarImage: (NSImage *) img {
-    [statusItem setImage:img];
-    [statusItem setHighlightMode:YES];
 }
 
 /* This method is purely to test how well our program can recognize individual gestures */
@@ -1026,6 +1113,7 @@ static int currentGesture = 0;
 	}		
 	
 }
+
 @end
 
 #endif //LUILISTENER
