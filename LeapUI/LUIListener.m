@@ -15,7 +15,7 @@
 #import <CoreAudio/CoreAudio.h>
 
 #define DEBUG 0
-#define testGestures 1
+#define testGestures 0
 
 #define fequal(a,b) (fabs((a) - (b)) < FLT_EPSILON)
 
@@ -585,7 +585,10 @@ static BOOL userIsCmndTabbing = NO;
                 //scrollingVelocity = [fingers[0] tipVelocity];
             }
             else {
-                
+                currentAction = lPinchZooming;
+                if(testGestures) [self testGestureRecognition:3];
+                [self pinchAndZoom:fingers withController: aController];
+                return;
                 //[self inertialScrollWithVelocity: scrollingVelocity];
             }
         }
@@ -617,7 +620,12 @@ static BOOL userIsCmndTabbing = NO;
 - (void) pinchAndZoom :(NSMutableArray *)fingers withController: (LeapController *) aController {
     BOOL symbol=NO;
     
-    if( [[aController frame:0] scaleProbability: [aController frame:1]] < 0.4) return;
+    if( [[aController frame:0] scaleProbability: [aController frame:1]] < 0.4){
+        currentAction = lScrolling;
+        if(testGestures) [self testGestureRecognition:2];
+        [self scrollWithFingers: fingers andController: aController];
+        return;
+    }
     if ( [fingers count] == 2 ){
         
         // BEGIN Two Finger Pinch&Zoom
@@ -749,16 +757,16 @@ static BOOL userIsCmndTabbing = NO;
     float radius= [hands sphereRadius];
          // NSLog(@"current radius= %f",radius);
        // NSLog(@"prevradius = %f",prevRadius);
-    const float radiusthreshold=2.2;
+    const float radiusthreshold=1.1;
     if(radius - prevRadius>=radiusthreshold)
     {
         NSLog(@"Increase the Brightness");
-        [self set_brightness:[self get_brightness]+0.05];
+        [self set_brightness:[self get_brightness]+0.01];
             }
     else if(prevRadius - radius>=radiusthreshold)
     {
         NSLog(@"Decrease the Brightness");
-       [self set_brightness:[self get_brightness]-0.05];
+       [self set_brightness:[self get_brightness]-0.01];
     }
     prevRadius=radius;
     }
@@ -1024,55 +1032,35 @@ static BOOL userIsCmndTabbing = NO;
     //fingers = [self filterRogueFingers:fingers];
     
     [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
-    
-    /*TO JIN: If it still doesn't work, then uncomment the code below
-     
-    CGFloat scaleProbability = [frame scaleProbability:[aController frame:1]];
-    CGFloat translationProbability = [frame translationProbability:[aController frame:1]];
-    if(fingerCount == 2) {
-        if(scaleProbability > translationProbability) {
-            currentAction = lPinchZooming;
-            if(testGestures) [self testGestureRecognition:3];
-            [self pinchAndZoom:fingers withController: aController];
-            return;
-        }
-        else {
-            currentAction = lScrolling;
-            if(testGestures) [self testGestureRecognition:2];
-            [self scrollWithFingers: fingers andController: aController];
-            return;
-        }
-    }
-    
-    */
         
     if([fingers count]) {
         switch (currentAction) {
             case lMovingCursor:
-                /*if(fingerCount == 1) {
+                if(fingerCount == 1) {
                     [self moveCursorWithFinger:[fingers leftmost] controller:aController];
                     return;
-                }*/
+                }
                 break;
             case lScrolling:
                 if(fingerCount == 2) {
+                    
                     [self scrollWithFingers:fingers andController:aController];
                     return;
                 }
                 break;
                 
             case lPinchZooming:
-                /*if(fingerCount == 2) {
+                if(fingerCount == 2) {
                     [self pinchAndZoom:fingers withController:aController];
                     return;
-                }*/
+                }
                 break;
                 
             case lDraggingCursor:
-                /*if((fingerCount >=1 && leftClickDown) || fingerCount == 3) {
+                if((fingerCount >=1 && leftClickDown) || fingerCount == 3) {
                     [self dragCursorWithFinger:[fingers leftmost] controller:aController];
                     return;
-                }*/
+                }
                 break;
                 
             case lVolumeControl:
@@ -1083,25 +1071,25 @@ static BOOL userIsCmndTabbing = NO;
                 break;
                 
             case lBrightnessControl:
-                /*if(fingerCount >= 3) {
+                if(fingerCount >= 3) {
                     [self brightnessControl:hand andFingers:fingers];
                     return;
-                }*/
+                }
                 break;
                 
             case lCmndTab:
-                /*if(fingerCount == 5) {
+                if(fingerCount == 5) {
                     [self cmndTabWithFinger:[fingers leftmost] controller:aController];
                     userIsCmndTabbing = NO;
                     return;
-                }*/
+                }
                 break;
             case lAppPanel:
-                /*if(fingerCount == 5){
+                if(fingerCount == 5){
                     [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
                     userIsOpeningApp = NO;
                     return;
-                }*/
+                }
                 break;
             case lNone:
                 break;
