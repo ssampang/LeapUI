@@ -757,7 +757,7 @@ static BOOL userIsCmndTabbing = NO;
     float radius= [hands sphereRadius];
          // NSLog(@"current radius= %f",radius);
        // NSLog(@"prevradius = %f",prevRadius);
-    const float radiusthreshold=1.1;
+    const float radiusthreshold=2.2;
     if(radius - prevRadius>=radiusthreshold)
     {
         NSLog(@"Increase the Brightness");
@@ -774,14 +774,17 @@ static BOOL userIsCmndTabbing = NO;
 
 - (void) volumeControl:(NSMutableArray *)fingers withController:(LeapController *) aController {
     if([fingers count]==4){
-    LeapFrame *prevFrame = [aController frame: 1];
-    LeapFrame *currentFrame = [aController frame:0];
+        LeapFrame *prevFrame = [aController frame: 1];
+        LeapFrame *currentFrame = [aController frame:0];
     
-     NSMutableArray *currentFingers = [[NSMutableArray alloc] initWithArray:[currentFrame fingers]];
-    NSMutableArray *prevFingers = [[NSMutableArray alloc] initWithArray:[prevFrame fingers]];
-    BOOL symbol=NO;
-    float tip1Positiony = [ currentFingers[0] tipPosition ].y;
-    float tip2Positiony = [ currentFingers[1] tipPosition ].y;
+        NSMutableArray *currentFingers = [[NSMutableArray alloc] initWithArray:[currentFrame fingers]];
+        NSMutableArray *prevFingers = [[NSMutableArray alloc] initWithArray:[prevFrame fingers]];
+        
+        if([prevFingers count] != 4) return;
+        
+        BOOL symbol=NO;
+        float tip1Positiony = [ currentFingers[0] tipPosition ].y;
+        float tip2Positiony = [ currentFingers[1] tipPosition ].y;
         float tip3Positiony = [ currentFingers[2] tipPosition ].y;
         float tip4Positiony = [ currentFingers[3] tipPosition ].y;
         float prevtip1Positiony = [ prevFingers[0] tipPosition ].y;
@@ -868,7 +871,7 @@ static BOOL userIsCmndTabbing = NO;
     
     CGFloat scaleProbability = [frame scaleProbability:[aController frame:1]];
     CGFloat translationProbability = [frame translationProbability:[aController frame:1]];
-    CGFloat rotationProbability = [frame rotationProbability:[aController frame:1]];
+    //CGFloat rotationProbability = [frame rotationProbability:[aController frame:1]];
     
     if(leftClickDown) {
         [self dragCursorWithFinger: [fingers leftmost] controller:aController];
@@ -901,22 +904,15 @@ static BOOL userIsCmndTabbing = NO;
     }
     else if (fingerCount==3)
     {
-        if(rotationProbability > translationProbability) {
-            currentAction = lVolumeControl;
-            if(testGestures) [self testGestureRecognition:5];
-            //[self volumeControl:hand andController:aController];
-        }
-        else {
-            if(testGestures) [self testGestureRecognition:6];
-            currentAction = lDraggingCursor;
-            [self dragCursorWithFinger:[fingers leftmost] controller:aController];
-        }
+        if(testGestures) [self testGestureRecognition:6];
+        currentAction = lDraggingCursor;
+        [self dragCursorWithFinger:[fingers leftmost] controller:aController];
     }
     else if (fingerCount==4)
     {
         currentAction = lVolumeControl;
         if(testGestures) [self testGestureRecognition:5];
-        //[self volumeControl:hand andController:aController];
+        [self volumeControl: fingers withController:aController];
     }
     else if(fingerCount == 5) {
         if(userIsCmndTabbing) {
@@ -1082,10 +1078,10 @@ static BOOL userIsCmndTabbing = NO;
                 break;
                 
             case lVolumeControl:
-                /*if(fingerCount >= 1) {
+                if(fingerCount == 4) {
                     [self volumeControl:fingers withController:aController];
                     return;
-                }*/
+                }
                 break;
                 
             case lBrightnessControl:
