@@ -583,7 +583,7 @@ static BOOL userIsCmndTabbing = NO;
     if ( [fingers count] == 2 ){
         
         // BEGIN Two Finger Pinch&Zoom
-        const float disThreshold = 2.5;
+        const float disThreshold = 1;
         float tip1Positionx = [ fingers[0] tipPosition ].x;
         float tip2Positionx = [ fingers[1] tipPosition ].x;
         float tip1Positiony = [ fingers[0] tipPosition ].y;
@@ -760,6 +760,9 @@ static BOOL userIsCmndTabbing = NO;
 }
 
 - (NSMutableArray *) filterRogueFingers: (NSMutableArray *) fingers {
+    /* If all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z
+     * is pointed towards the user and is very fast (this will mean that the user is withdrawing the finger from the field */
+    
     BOOL allPastMinFreezeThreshold = YES;
     
     for(int i = 0; i < [fingers count]; i++) {
@@ -775,6 +778,7 @@ static BOOL userIsCmndTabbing = NO;
         for(int i = 0; i < [fingers count]; i++) {
             LeapVector *fingerTipVel = ((LeapPointable *)[fingers objectAtIndex:i]).tipVelocity;
             if(fingerTipVel.z > MAX_Z_VELOCITY) {
+                NSLog(@"Removing finger with z-velocity: %f", fingerTipVel.z);
                 [fingers removeObjectAtIndex:i];
             }
         }
@@ -787,9 +791,6 @@ static BOOL userIsCmndTabbing = NO;
     
     /* First, if no finger is within the box designated by LEAP_FIELD_OF_VIEW_WIDTH x LEAP_FIELD_OF_VIEW_HEIGHT x LEAP_MIN_VIEW_THRESHOLD
      * then ignore all fingers */
-    
-    /* Then, if all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z
-     * is pointed towards the user and is very fast (this will mean that the user is withdrawing the finger from the field */
     
     BOOL allOutOfRange = YES;
     
@@ -828,7 +829,10 @@ static BOOL userIsCmndTabbing = NO;
     
     if(fingerCount==0)
     {
-        
+        currentAction = lNone;
+        startSymbol=1;
+        startSymbolV=1;
+        startSymbolR=1;
     }
     else if(fingerCount == 1) {
         currentAction = lMovingCursor;
@@ -964,9 +968,31 @@ static BOOL userIsCmndTabbing = NO;
     NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
     NSUInteger fingerCount = [fingers count];
     
+    //TO JIN: You can comment this line out and see if it works better.
     fingers = [self filterRogueFingers:fingers];
     
     [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
+    
+    /*TO JIN: If it still doesn't work, then uncomment the code below
+     
+    CGFloat scaleProbability = [frame scaleProbability:[aController frame:1]];
+    CGFloat translationProbability = [frame translationProbability:[aController frame:1]];
+    if(fingerCount == 2) {
+        if(scaleProbability > translationProbability) {
+            currentAction = lPinchZooming;
+            if(testGestures) [self testGestureRecognition:3];
+            [self pinchAndZoom:fingers withController: aController];
+            return;
+        }
+        else {
+            currentAction = lScrolling;
+            if(testGestures) [self testGestureRecognition:2];
+            [self scrollWithFingers: fingers andController: aController];
+            return;
+        }
+    }
+    
+    */
         
     if([fingers count]) {
         switch (currentAction) {
