@@ -866,7 +866,7 @@ static BOOL userIsCmndTabbing = NO;
         [self moveCursorWithFinger: [fingers leftmost] controller: aController];
     }
     else if(fingerCount == 2) {
-        if(scaleProbability > translationProbability) {
+        if(scaleProbability >= translationProbability) {
             currentAction = lPinchZooming;
             if(testGestures) [self testGestureRecognition:3];
             [self pinchAndZoom:fingers withController: aController];
@@ -1024,7 +1024,7 @@ static BOOL userIsCmndTabbing = NO;
     NSUInteger fingerCount = [fingers count];
     
     //TO JIN: You can comment this line out and see if it works better.
-    fingers = [self filterRogueFingers:fingers];
+   // fingers = [self filterRogueFingers:fingers];
     
     [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
     
@@ -1080,7 +1080,7 @@ static BOOL userIsCmndTabbing = NO;
                 
             case lVolumeControl:
                 /*if(fingerCount >= 1) {
-                    [self volumeControl:hand andController:aController];
+                    [self volumeControl:fingers andController:aController];
                     return;
                 }*/
                 break;
