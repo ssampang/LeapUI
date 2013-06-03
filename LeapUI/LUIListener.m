@@ -510,7 +510,7 @@ static BOOL userIsCmndTabbing = NO;
     }
 }
 
-- (void) cmndTabWithFinger: (LeapFinger *) finger controller: (LeapController *) aController {
+- (void) cmndTabWithController: (LeapController *) aController {
     if(!cmndTabMenuIsVisible) {
         //[self setStatusItemColor:finger WithFingers:5];
         [self pressKey:kVK_Command down:NO];
@@ -529,7 +529,7 @@ static BOOL userIsCmndTabbing = NO;
     //else [self moveCursorWithFinger:finger controller:aController];
 }
 
-- (void) openAppPanel: (LeapFinger *) finger controller: (LeapController *) aController {
+- (void) openAppPanelWithController: (LeapController *) aController {
     if(appPanelLaunched) return;
     
     [self pressKey:kVK_Shift down:NO];
@@ -777,7 +777,7 @@ static BOOL userIsCmndTabbing = NO;
         LeapFrame *prevFrame = [aController frame: 1];
         LeapFrame *currentFrame = [aController frame:0];
     
-        NSMutableArray *currentFingers = [[NSMutableArray alloc] initWithArray:[currentFrame fingers]];
+        NSMutableArray *currentFingers = fingers;
         NSMutableArray *prevFingers = [[NSMutableArray alloc] initWithArray:[prevFrame fingers]];
         
         if([prevFingers count] != 4) return;
@@ -918,19 +918,21 @@ static BOOL userIsCmndTabbing = NO;
         if(userIsCmndTabbing) {
             currentAction = lCmndTab;
             if(testGestures) [self testGestureRecognition: 7];
-            [self cmndTabWithFinger:[fingers leftmost] controller:aController];
+            [self cmndTabWithController:aController];
         }
         else if (userIsOpeningApp){
             currentAction = lAppPanel;
             if(testGestures) [self testGestureRecognition: 8];
-            [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
+            [self openAppPanelWithController: aController];
         }
         else {
         	LeapFrame *previousFrame = [aController frame:1];
-            LeapHand *prevHand=[[previousFrame hands] objectAtIndex:0];
+            if([previousFrame hands].count == 0) return;
+            LeapHand *prevHand= [[previousFrame hands] objectAtIndex:0];
             float currentRadius=[hand sphereRadius];
             float prevRadius=[prevHand sphereRadius];
-            float change=fabsf(currentRadius-prevRadius);
+            
+            /*float change=fabsf(currentRadius-prevRadius);
             NSLog(@"change is %f",change);
             if(change>=0.5)
             {
@@ -938,7 +940,7 @@ static BOOL userIsCmndTabbing = NO;
                 if(testGestures) [self testGestureRecognition: 4];
                 [self brightnessControl:hand andFingers:fingers];
                 return;
-            }
+            }*/
             /*if(scaleProbability > translationProbability ) {
              if( scaleProbability > rotationProbability) {
              if(testGestures) [self testGestureRecognition: 4];
@@ -958,28 +960,27 @@ static BOOL userIsCmndTabbing = NO;
                     swipeGesture = [gestures objectAtIndex:i];
                     break;
                 }
-                
-                
-
             }
             
             if(swipeGesture == nil) return;
             
             LeapVector *swipeDirection = swipeGesture.direction;
-            NSLog(@"X-dir: %f; Y-dir: %f", swipeDirection.x, swipeDirection.y);
-            if(swipeDirection.x < swipeDirection.y){
-                userIsOpeningApp = YES;
-                currentAction = lAppPanel;
-                if(testGestures) [self testGestureRecognition: 8];
-                [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
-                return;
-            }
-            else{
-                userIsCmndTabbing = YES;
-                currentAction = lCmndTab;
-                if(testGestures) [self testGestureRecognition: 7];
-                [self cmndTabWithFinger:[fingers objectAtIndex:0] controller: aController];
-                return;
+            if(DEBUG) NSLog(@"X-dir: %f; Y-dir: %f", swipeDirection.x, swipeDirection.y);
+            if(fabsf(swipeDirection.x) < fabsf(swipeDirection.y)){
+                if(swipeDirection.y > 0) {
+                    userIsOpeningApp = YES;
+                    currentAction = lAppPanel;
+                    if(testGestures) [self testGestureRecognition: 8];
+                    [self openAppPanelWithController: aController];
+                    return;
+                }
+                else {
+                    userIsCmndTabbing = YES;
+                    currentAction = lCmndTab;
+                    if(testGestures) [self testGestureRecognition: 7];
+                    [self cmndTabWithController: aController];
+                    return;
+                }
             }
             
             /*}
@@ -1093,15 +1094,13 @@ static BOOL userIsCmndTabbing = NO;
                 
             case lCmndTab:
                 if(fingerCount == 5) {
-                    [self cmndTabWithFinger:[fingers leftmost] controller:aController];
-                    userIsCmndTabbing = NO;
+                    [self cmndTabWithController:aController];
                     return;
                 }
                 break;
             case lAppPanel:
                 if(fingerCount == 5){
-                    [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
-                    userIsOpeningApp = NO;
+                    [self openAppPanelWithController: aController];
                     return;
                 }
                 break;
