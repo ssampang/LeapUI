@@ -772,38 +772,40 @@ static BOOL userIsCmndTabbing = NO;
     }
 }
 
-- (void) volumeControl:(LeapHand *)hands andController:(LeapController *) aController {
+- (void) volumeControl:(NSMutableArray *)fingers withController:(LeapController *) aController {
+    if([fingers count]==4){
     LeapFrame *prevFrame = [aController frame: 1];
+    LeapFrame *currentFrame = [aController frame:0];
     
+     NSMutableArray *currentFingers = [[NSMutableArray alloc] initWithArray:[currentFrame fingers]];
+    NSMutableArray *prevFingers = [[NSMutableArray alloc] initWithArray:[prevFrame fingers]];
     BOOL symbol=NO;
-    float rotationAngle=0;
-    const float rotationThreshold=0.05;
-    if(startSymbolV!=1){
-    LeapVector *axis=[[LeapVector alloc]init];
-    axis=[hands rotationAxis:prevFrame];
-     rotationAngle=[hands rotationAngle:prevFrame];
-        if(rotationAngle-prevRotationAngle>=rotationThreshold)
+    float tip1Positiony = [ currentFingers[0] tipPosition ].y;
+    float tip2Positiony = [ currentFingers[1] tipPosition ].y;
+        float tip3Positiony = [ currentFingers[2] tipPosition ].y;
+        float tip4Positiony = [ currentFingers[3] tipPosition ].y;
+        float prevtip1Positiony = [ prevFingers[0] tipPosition ].y;
+        float prevtip2Positiony = [ prevFingers[1] tipPosition ].y;
+        float prevtip3Positiony = [ prevFingers[2] tipPosition ].y;
+        float prevtip4Positiony = [ prevFingers[3] tipPosition ].y;
+        float decreaseChanges=(prevtip1Positiony+prevtip2Positiony+prevtip3Positiony+prevtip4Positiony-tip1Positiony
+                               -tip2Positiony-tip3Positiony-tip4Positiony)/4;
+        float increaseChanges=(tip1Positiony+tip2Positiony+tip3Positiony+tip4Positiony-prevtip1Positiony-prevtip2Positiony-prevtip3Positiony-prevtip4Positiony)/4;
+     
+        const float palmThreshold=0.75;
+        if(increaseChanges>=palmThreshold)
         {
-            NSLog(@"Increase the Volume");
-            
+            // NSLog(@"Increase the Volume");
+            [self setVolume:[self getVolume]+0.01];
         }
-       else if(prevRotationAngle-rotationAngle>=rotationThreshold)
-       {
-           NSLog(@"Decrease the Volume");
-       }
-        else{
-    symbol=YES;
+        if(decreaseChanges>=palmThreshold)
+        {
+           // NSLog(@"Decrease the Volume");
+            [self setVolume:[self getVolume]-0.01];
         }
+    }
+   }
 
-        }
-    if(startSymbolV==1)
-        startSymbolV--;
-    if(symbol==YES)
-        startSymbolV=1;
-    prevRotationAngle=rotationAngle;
-    NSLog(@"rotationAngle= %f",rotationAngle);
-
-}
 
 - (NSMutableArray *) filterRogueFingers: (NSMutableArray *) fingers {
     /* If all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z
@@ -886,7 +888,7 @@ static BOOL userIsCmndTabbing = NO;
         [self moveCursorWithFinger: [fingers leftmost] controller: aController];
     }
     else if(fingerCount == 2) {
-        if(scaleProbability > translationProbability) {
+        if(scaleProbability >= translationProbability) {
             currentAction = lPinchZooming;
             if(testGestures) [self testGestureRecognition:3];
             [self pinchAndZoom:fingers withController: aController];
@@ -928,6 +930,19 @@ static BOOL userIsCmndTabbing = NO;
             [self openAppPanel:[fingers objectAtIndex:0] controller: aController];
         }
         else {
+        	LeapFrame *previousFrame = [aController frame:1];
+            LeapHand *prevHand=[[previousFrame hands] objectAtIndex:0];
+            float currentRadius=[hand sphereRadius];
+            float prevRadius=[prevHand sphereRadius];
+            float change=fabsf(currentRadius-prevRadius);
+            NSLog(@"change is %f",change);
+            if(change>=0.5)
+            {
+                currentAction = lBrightnessControl;
+                if(testGestures) [self testGestureRecognition: 4];
+                [self brightnessControl:hand andFingers:fingers];
+                return;
+            }
             /*if(scaleProbability > translationProbability ) {
              if( scaleProbability > rotationProbability) {
              if(testGestures) [self testGestureRecognition: 4];
@@ -947,6 +962,9 @@ static BOOL userIsCmndTabbing = NO;
                     swipeGesture = [gestures objectAtIndex:i];
                     break;
                 }
+                
+                
+
             }
             
             if(swipeGesture == nil) return;
@@ -1065,7 +1083,7 @@ static BOOL userIsCmndTabbing = NO;
                 
             case lVolumeControl:
                 /*if(fingerCount >= 1) {
-                    [self volumeControl:hand andController:aController];
+                    [self volumeControl:fingers withController:aController];
                     return;
                 }*/
                 break;
