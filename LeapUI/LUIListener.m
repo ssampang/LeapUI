@@ -37,6 +37,18 @@
   5 fingers into the space */
 #define LEAP_MIN_FINGER_X_DISTANCE 300
 
+/* If no fingers are past the FREEZE or CLICK thresholds, and if a finger
+ * has a z-velocity of MAX_Z_VELOCITY or greater, then it is safe to assume
+ * the user is removing that finger from the frame and does not want the
+ * system to interpret it as a gesture */
+#define MAX_Z_VELOCITY 500
+
+/* If the distance between a finger.tipPosition and hand.palmCenter is below
+ * MIN_FINGER_PALM_DISTANCE then it is probably a knuckle and should'nt be recognized
+ */
+
+#define MIN_FINGER_PALM_DISTANCE 30
+
 @implementation LUIListener
 @synthesize window = _window;
 
@@ -369,21 +381,21 @@ static BOOL userIsCmndTabbing = NO;
     if(finger.tipPosition.z < MIN_CLICK_THRESHOLD) {
         if(!leftClickClicked){
             leftClickClicked = YES;
+                    }
+        return;
+    }
+    else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
+        if(leftClickClicked) {
             if(userIsCmndTabbing == YES) {
                 userIsCmndTabbing = NO;
                 cmndTabMenuIsVisible = NO;
                 [self pressKey:kVK_Command down:NO];
                 [self pressKey:kVK_Tab down:NO];
             }
-        }
-        return;
-    }
-    else if(finger.tipPosition.z < MIN_FREEZE_THRESHOLD){
-        if(leftClickClicked) {
             NSPoint mouseLoc = [NSEvent mouseLocation];
             CGPoint clickPosition = CGPointMake(mouseLoc.x, mainScreenHeight - mouseLoc.y);
             [self postEvent: kCGEventLeftMouseDown atPosition:clickPosition withButton:kCGMouseButtonLeft];
-            [NSThread sleepForTimeInterval:0.1];
+            //[NSThread sleepForTimeInterval:0.1];
             [self postEvent: kCGEventLeftMouseUp atPosition:clickPosition withButton:kCGMouseButtonLeft];
             leftClickClicked = NO;
         }
@@ -747,14 +759,45 @@ static BOOL userIsCmndTabbing = NO;
 
 }
 
+- (NSMutableArray *) filterRogueFingers: (NSMutableArray *) fingers {
+    BOOL allPastMinFreezeThreshold = YES;
+    
+    for(int i = 0; i < [fingers count]; i++) {
+        
+        LeapVector *fingerTipPostion = ((LeapPointable *)[fingers objectAtIndex:i]).tipPosition;
+        
+        if(fingerTipPostion.z < MIN_FREEZE_THRESHOLD) {
+            allPastMinFreezeThreshold = NO;
+        }
+    }
+    
+    if(allPastMinFreezeThreshold) {
+        for(int i = 0; i < [fingers count]; i++) {
+            LeapVector *fingerTipVel = ((LeapPointable *)[fingers objectAtIndex:i]).tipVelocity;
+            if(fingerTipVel.z > MAX_Z_VELOCITY) {
+                [fingers removeObjectAtIndex:i];
+            }
+        }
+    }
+    
+    return fingers;
+}
+
 - (NSMutableArray *) filterFingers: (NSMutableArray *) fingers {    
     
     /* First, if no finger is within the box designated by LEAP_FIELD_OF_VIEW_WIDTH x LEAP_FIELD_OF_VIEW_HEIGHT x LEAP_MIN_VIEW_THRESHOLD
      * then ignore all fingers */
     
+    /* Then, if all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z
+     * is pointed towards the user and is very fast (this will mean that the user is withdrawing the finger from the field */
+    
     BOOL allOutOfRange = YES;
+    
+    
     for(int i = 0; i < [fingers count]; i++) {
-        LeapVector *fingerTipPostion = ( (LeapPointable *)[fingers objectAtIndex:i]).tipPosition;
+        
+        LeapVector *fingerTipPostion = ((LeapPointable *)[fingers objectAtIndex:i]).tipPosition;
+        
         if(fingerTipPostion.z <= MIN_VIEW_THRESHOLD &&
            fabsf(fingerTipPostion.x) <= (LEAP_MIN_FINGER_X_DISTANCE/2) &&
            fingerTipPostion.y <= LEAP_FIELD_OF_VIEW_HEIGHT){
@@ -764,10 +807,6 @@ static BOOL userIsCmndTabbing = NO;
     }
     
     if(allOutOfRange) return [[NSMutableArray alloc] initWithObjects: nil];
-    
-    //if all fingertipposition.z > MIN_FREEZE_THRESHOLD then remove each finger whos fingertipvelocity.z is pointed towards the user and is very fast (this will mean that the user is withdrawing the finger from the field
-    
-    /* Split fingers into two groups. Those which are pointed in a direction that's really */
     
     return fingers;
 }
@@ -925,6 +964,10 @@ static BOOL userIsCmndTabbing = NO;
     NSMutableArray *fingers = [[NSMutableArray alloc] initWithArray:[frame fingers]];
     NSUInteger fingerCount = [fingers count];
     
+    fingers = [self filterRogueFingers:fingers];
+    
+    [self setStatusItemColor:[fingers leftmost] WithFingers:(int) fingerCount ];
+        
     if([fingers count]) {
         switch (currentAction) {
             case lMovingCursor:
