@@ -133,6 +133,8 @@ static BOOL leftClickDown = NO;
 
 /* SCROLLING VARS */
 static LeapVector *scrollingVelocity;
+static double SCROLL_SENSITIVITY = 0.8;   //BLUE
+static double SCROLL_CHANGE_THRESHOLD = 4.2; //BLUE
 
 /* PINCH AND ZOOM VARS */
 static float prevTipdistance = 0;
@@ -570,17 +572,22 @@ static BOOL userIsCmndTabbing = NO;
        
         if([currentFrame translationProbability: previousFrame] > 0.4) {
             if (currentTipPosition.z < MIN_CLICK_THRESHOLD  ){
-                CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
-                                                                      previousTipPosition.y - currentTipPosition.y);
-                CGEventRef scrollingX = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 2,
-                                                                      previousTipPosition.x - currentTipPosition.x);
-                CGEventSetType(scrollingY, kCGEventScrollWheel);
-                CGEventPost(kCGHIDEventTap, scrollingY);
-                CFRelease(scrollingY);
-                
-                CGEventSetType(scrollingX, kCGEventScrollWheel);
-                CGEventPost(kCGHIDEventTap, scrollingX);
-                CFRelease(scrollingX);
+                float yChange = previousTipPosition.y - currentTipPosition.y;
+                float xChange = previousTipPosition.x - currentTipPosition.x;
+                if ( fabs(yChange) > SCROLL_CHANGE_THRESHOLD){  //BLUE
+                    CGEventRef scrollingY = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 1,
+                                                                          yChange * SCROLL_SENSITIVITY);
+                    CGEventSetType(scrollingY, kCGEventScrollWheel);
+                    CGEventPost(kCGHIDEventTap, scrollingY);
+                    CFRelease(scrollingY);
+                }
+                if ( fabs(xChange) > SCROLL_CHANGE_THRESHOLD){ //BLUE
+                    CGEventRef scrollingX = CGEventCreateScrollWheelEvent(NULL, kCGScrollEventUnitLine, 2,
+                                                                          xChange * SCROLL_SENSITIVITY);
+                    CGEventSetType(scrollingX, kCGEventScrollWheel);
+                    CGEventPost(kCGHIDEventTap, scrollingX);
+                    CFRelease(scrollingX);
+                }
                 
                 //scrollingVelocity = [fingers[0] tipVelocity];
             }
